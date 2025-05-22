@@ -17,7 +17,7 @@ class EmailService
         // Usando um domínio verificado do Resend temporariamente
         $this->fromEmail = 'onboarding@resend.dev';
         $this->fromName = 'ERP Store';
-        $this->testEmail = 'nadojba@hotmail.com';
+        $this->testEmail = 'leonardo.geja@unoesc.edu.br'; // Email verificado no Resend
     }
 
     public function enviarDetalhesCompra(string $email, array $itens, float $subtotal, float $desconto, float $frete, float $total): void

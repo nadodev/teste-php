@@ -113,7 +113,7 @@ switch ($route) {
     case 'webhook':
         require_once __DIR__ . '/../src/Presentation/Controllers/WebhookController.php';
         $controller = new Presentation\Controllers\WebhookController();
-        $controller->atualizarPedido();
+        $controller->handleOrderStatus();
         break;
 
     case 'pedidos':

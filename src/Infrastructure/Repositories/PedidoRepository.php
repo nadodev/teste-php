@@ -147,4 +147,31 @@ class PedidoRepository
         $stmt->execute([$pedidoId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function delete(int $id): bool
+    {
+        try {
+            $this->connection->beginTransaction();
+
+            // Primeiro remove os itens do pedido
+            $stmtItems = $this->connection->prepare("DELETE FROM pedido_itens WHERE pedido_id = ?");
+            $stmtItems->execute([$id]);
+
+            // Depois remove o pedido
+            $stmtPedido = $this->connection->prepare("DELETE FROM pedidos WHERE id = ?");
+            $success = $stmtPedido->execute([$id]);
+
+            $this->connection->commit();
+            return $success;
+        } catch (\Exception $e) {
+            $this->connection->rollBack();
+            throw $e;
+        }
+    }
+
+    public function updateStatus(int $id, string $status): bool
+    {
+        $stmt = $this->connection->prepare("UPDATE pedidos SET status = ? WHERE id = ?");
+        return $stmt->execute([$status, $id]);
+    }
 } 
