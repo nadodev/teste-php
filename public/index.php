@@ -8,6 +8,13 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 Infrastructure\Config\Env::load();
 Infrastructure\Config\Config::load();
+
+if(Env::get('ENVIRONMENT') === 'development' && Env::get('APP_DEBUG') === 'true'){
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
+}
+
 $requestUri = $_SERVER['REQUEST_URI'];
 $scriptName = dirname($_SERVER['SCRIPT_NAME']);
 
