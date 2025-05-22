@@ -2,6 +2,8 @@
 
 namespace Presentation;
 
+use Domain\Services\CarrinhoService;
+
 class View
 {
     private string $viewPath;

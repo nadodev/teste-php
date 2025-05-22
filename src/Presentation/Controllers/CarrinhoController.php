@@ -34,22 +34,34 @@ class CarrinhoController
         $itens = [];
         $produtos = [];
         $subtotal = 0;
+        $produtosRemovidos = false;
 
-        foreach ($this->carrinhoService->getItems() as $item) {
-            $produto = $this->produtoRepository->findById($item['produto_id']);
-            if ($produto) {
-                $produtos[$produto->getId()] = $produto;
-                $estoque = $this->estoqueRepository->findByProdutoId($produto->getId())[0] ?? null;
-                $quantidade = $item['quantidade'];
-                $subtotal += $produto->getPreco() * $quantidade;
-
-                $itens[] = [
-                    'produto' => $produto,
-                    'estoque' => $estoque,
-                    'quantidade' => $quantidade,
-                    'subtotal' => $produto->getPreco() * $quantidade
-                ];
+        foreach ($this->carrinhoService->getItems() as $produto_id => $item) {
+            $produto = $this->produtoRepository->findById($produto_id);
+            if (!$produto) {
+                $this->carrinhoService->removerItem($produto_id);
+                $produtosRemovidos = true;
+                continue;
             }
+
+            $produtos[$produto_id] = $produto;
+            $estoque = $this->estoqueRepository->findByProdutoId($produto_id)[0] ?? null;
+            $quantidade = $item['quantidade'];
+            $subtotal += $produto->getPreco() * $quantidade;
+
+            $itens[] = [
+                'produto' => $produto,
+                'estoque' => $estoque,
+                'quantidade' => $quantidade,
+                'subtotal' => $produto->getPreco() * $quantidade
+            ];
+        }
+
+        if ($produtosRemovidos) {
+            $_SESSION['message'] = [
+                'type' => 'warning',
+                'text' => 'Alguns produtos não estão mais disponíveis e foram removidos do seu carrinho.'
+            ];
         }
 
         $cupom = $this->carrinhoService->getCupom();
@@ -122,6 +134,16 @@ class CarrinhoController
         }
 
         $produto_id = (int) ($_POST['produto_id'] ?? 0);
+        
+        if ($produto_id <= 0) {
+            $_SESSION['message'] = [
+                'type' => 'danger',
+                'text' => 'ID do produto inválido.'
+            ];
+            header('Location: /carrinho');
+            exit;
+        }
+
         $this->carrinhoService->removerItem($produto_id);
 
         $_SESSION['message'] = [
@@ -305,30 +327,37 @@ class CarrinhoController
         $produtos = [];
         $subtotal = 0;
 
-        foreach ($this->carrinhoService->getItems() as $item) {
-            $produto = $this->produtoRepository->findById($item['produto_id']);
-            if ($produto) {
-                $produtos[$produto->getId()] = $produto;
-                $estoque = $this->estoqueRepository->findByProdutoId($produto->getId())[0] ?? null;
-                $quantidade = $item['quantidade'];
-                $subtotal += $produto->getPreco() * $quantidade;
-
-                if (!$estoque || $estoque->getQuantidade() < $quantidade) {
-                    $_SESSION['message'] = [
-                        'type' => 'danger',
-                        'text' => "Produto {$produto->getNome()} não possui estoque suficiente."
-                    ];
-                    header('Location: /carrinho');
-                    exit;
-                }
-
-                $itens[] = [
-                    'produto' => $produto,
-                    'estoque' => $estoque,
-                    'quantidade' => $quantidade,
-                    'subtotal' => $produto->getPreco() * $quantidade
+        foreach ($this->carrinhoService->getItems() as $produto_id => $item) {
+            $produto = $this->produtoRepository->findById($produto_id);
+            if (!$produto) {
+                $_SESSION['message'] = [
+                    'type' => 'danger',
+                    'text' => 'Um ou mais produtos não estão mais disponíveis. Por favor, atualize seu carrinho.'
                 ];
+                header('Location: /carrinho');
+                exit;
             }
+
+            $produtos[$produto_id] = $produto;
+            $estoque = $this->estoqueRepository->findByProdutoId($produto_id)[0] ?? null;
+            $quantidade = $item['quantidade'];
+            $subtotal += $produto->getPreco() * $quantidade;
+
+            if (!$estoque || $estoque->getQuantidade() < $quantidade) {
+                $_SESSION['message'] = [
+                    'type' => 'danger',
+                    'text' => "Produto {$produto->getNome()} não possui estoque suficiente."
+                ];
+                header('Location: /carrinho');
+                exit;
+            }
+
+            $itens[] = [
+                'produto' => $produto,
+                'estoque' => $estoque,
+                'quantidade' => $quantidade,
+                'subtotal' => $produto->getPreco() * $quantidade
+            ];
         }
 
         if (empty($itens)) {

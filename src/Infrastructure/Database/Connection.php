@@ -4,6 +4,7 @@ namespace Infrastructure\Database;
 
 use PDO;
 use PDOException;
+use Infrastructure\Config\Env;
 
 class Connection
 {
@@ -13,13 +14,17 @@ class Connection
     {
         if (self::$instance === null) {
             try {
-                $config = require_once __DIR__ . '/../../../config/database.php';
-                $dsn = "mysql:host={$config['host']};dbname={$config['dbname']};charset={$config['charset']}";
+                $dsn = sprintf(
+                    "mysql:host=%s;dbname=%s;charset=%s",
+                    Env::get('DB_HOST'),
+                    Env::get('DB_NAME'),
+                    Env::get('DB_CHARSET')
+                );
                 
                 self::$instance = new PDO(
                     $dsn,
-                    $config['username'],
-                    $config['password'],
+                    Env::get('DB_USER'),
+                    Env::get('DB_PASS'),
                     [
                         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC

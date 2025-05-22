@@ -43,7 +43,7 @@
                             <?php foreach ($pedidos as $pedido): ?>
                                 <tr>
                                     <td>
-                                        <a href="/pedidos/detalhes&id=<?= $pedido->getId() ?>" class="text-decoration-none">
+                                        <a href="/pedidos/detalhes?id=<?= $pedido->getId() ?>" class="text-decoration-none">
                                             #<?= str_pad($pedido->getId(), 6, '0', STR_PAD_LEFT) ?>
                                         </a>
                                     </td>
@@ -57,7 +57,7 @@
                                         </span>
                                     </td>
                                     <td class="text-end">
-                                        <a href="/pedidos/detalhes&id=<?= $pedido->getId() ?>" 
+                                        <a href="/pedidos/detalhes?id=<?= $pedido->getId() ?>" 
                                            class="btn btn-sm btn-outline-primary"
                                            title="Ver detalhes">
                                             <i class="bi bi-eye"></i>

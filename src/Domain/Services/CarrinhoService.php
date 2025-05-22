@@ -5,6 +5,8 @@ namespace Domain\Services;
 use Domain\Entities\Produto;
 use Domain\Entities\Cupom;
 use Infrastructure\Repositories\CupomRepository;
+use Infrastructure\Repositories\ProdutoRepository;
+use Helpers\CarrinhoSessionStorage;
 
 class CarrinhoService
 {
@@ -16,6 +18,7 @@ class CarrinhoService
     private float $desconto = 0;
     private FreteService $freteService;
     private CupomRepository $cupomRepository;
+    private ProdutoRepository $produtoRepository;
 
     public function __construct()
     {
@@ -25,16 +28,15 @@ class CarrinhoService
 
         $this->freteService = new FreteService();
         $this->cupomRepository = new CupomRepository();
+        $this->produtoRepository = new ProdutoRepository();
         $this->items = $_SESSION['carrinho'] ?? [];
         $this->cupom_codigo = $_SESSION['cupom_codigo'] ?? null;
         
-        // Se tiver um cupom salvo, carrega ele do banco
         if ($this->cupom_codigo) {
             $cupom = $this->cupomRepository->findByCodigo($this->cupom_codigo);
             if ($cupom && $cupom->isValido()) {
                 $this->desconto = $cupom->getValorDesconto();
             } else {
-                // Se o cupom não for mais válido, remove ele
                 $this->cupom_codigo = null;
                 $this->desconto = 0;
                 unset($_SESSION['cupom_codigo']);
@@ -42,101 +44,52 @@ class CarrinhoService
         }
     }
 
-    public static function obterCarrinho(): self
-    {
-        $instance = new self();
-        
-        // Initialize empty cart if no session data exists
-        if (!isset($_SESSION['cart_data'])) {
-            $_SESSION['cart_data'] = [
-                'items' => [],
-                'subtotal' => 0,
-                'frete' => 0,
-                'total' => 0,
-                'cupom' => null,
-                'desconto' => 0
-            ];
-        }
-
-        // Get cart data, handling both serialized and array formats
-        $data = $_SESSION['cart_data'];
-        if (is_string($data)) {
-            try {
-                $data = unserialize($data);
-            } catch (\Exception $e) {
-                // If unserialization fails, start with empty cart
-                $data = [
-                    'items' => [],
-                    'subtotal' => 0,
-                    'frete' => 0,
-                    'total' => 0,
-                    'cupom' => null,
-                    'desconto' => 0
-                ];
-            }
-        }
-
-        // Ensure we have an array with all required keys
-        $data = array_merge([
-            'items' => [],
-            'subtotal' => 0,
-            'frete' => 0,
-            'total' => 0,
-            'cupom' => null,
-            'desconto' => 0
-        ], (array)$data);
-
-        $instance->items = (array)$data['items'];
-        $instance->subtotal = (float)$data['subtotal'];
-        $instance->frete = (float)$data['frete'];
-        $instance->total = (float)$data['total'];
-        $instance->cupom_codigo = $data['cupom'];
-        $instance->desconto = (float)$data['desconto'];
-
-        return $instance;
-    }
-
     private function salvar(): void
     {
         $_SESSION['carrinho'] = $this->items;
     }
 
-    public function adicionarProduto(Produto $produto, int $quantidade = 1): void
+    public function adicionarItem(int $produto_id, int $quantidade): void
     {
-        $id = $produto->getId();
-        
-        $item = [
-            'id' => $id,
-            'nome' => $produto->getNome(),
-            'preco' => $produto->getPreco(),
-            'quantidade' => $quantidade
-        ];
-
-        if (isset($this->items[$id])) {
-            $item['quantidade'] += $this->items[$id]['quantidade'];
+        if (isset($this->items[$produto_id])) {
+            $this->items[$produto_id]['quantidade'] += $quantidade;
+        } else {
+            $this->items[$produto_id] = [
+                'produto_id' => $produto_id,
+                'quantidade' => $quantidade
+            ];
         }
-
-        $this->items[$id] = $item;
+        
         $this->calcularTotais();
+        $this->salvar();
     }
 
-    public function removerProduto(int $produto_id): void
+    public function removerItem(int $produto_id): void
     {
         if (isset($this->items[$produto_id])) {
             unset($this->items[$produto_id]);
             $this->calcularTotais();
+            $this->salvar();
         }
     }
 
     public function atualizarQuantidade(int $produto_id, int $quantidade): void
     {
-        foreach ($this->items as &$item) {
-            if ($item['produto_id'] === $produto_id) {
-                $item['quantidade'] = $quantidade;
-                break;
-            }
+        if (isset($this->items[$produto_id])) {
+            $this->items[$produto_id]['quantidade'] = $quantidade;
+            $this->calcularTotais();
+            $this->salvar();
         }
-        $this->salvar();
+    }
+
+    public function obterCarrinho(): int
+    {
+
+        $quantidadeTotal = 0;
+        foreach ($this->items as $item) {
+            $quantidadeTotal += $item['quantidade'];
+        }
+        return $quantidadeTotal;
     }
 
     public function aplicarCupom(?Cupom $cupom): void
@@ -155,11 +108,13 @@ class CarrinhoService
     private function calcularTotais(): void
     {
         $this->subtotal = 0;
-        foreach ($this->items as $item) {
-            $this->subtotal += $item['preco'] * $item['quantidade'];
+        foreach ($this->items as $produto_id => $item) {
+            $produto = $this->produtoRepository->findById($produto_id);
+            if ($produto) {
+                $this->subtotal += $produto->getPreco() * $item['quantidade'];
+            }
         }
 
-        // Calculate shipping
         if ($this->subtotal >= 200) {
             $this->frete = 0;
         } elseif ($this->subtotal >= 52 && $this->subtotal <= 166.59) {
@@ -215,57 +170,15 @@ class CarrinhoService
 
     public function finalizarCompra(): void
     {
-        // Aqui você pode adicionar lógica adicional antes de limpar o carrinho
-        // como salvar o pedido no banco de dados, processar pagamento, etc.
         $this->limpar();
-    }
-
-    public function adicionarItem(int $produto_id, int $quantidade): void
-    {
-        $encontrado = false;
-        foreach ($this->items as &$item) {
-            if ($item['produto_id'] === $produto_id) {
-                $item['quantidade'] += $quantidade;
-                $encontrado = true;
-                break;
-            }
-        }
-
-        if (!$encontrado) {
-            $this->items[] = [
-                'produto_id' => $produto_id,
-                'quantidade' => $quantidade
-            ];
-        }
-
-        $this->salvar();
-    }
-
-    public function removerItem(int $produto_id): void
-    {
-        foreach ($this->items as $key => $item) {
-            if ($item['produto_id'] === $produto_id) {
-                unset($this->items[$key]);
-                break;
-            }
-        }
-        $this->items = array_values($this->items);
-        $this->salvar();
-    }
-
-    public function removerCupom(): void
-    {
-        $this->cupom_codigo = null;
-        $this->desconto = 0;
-        unset($_SESSION['cupom_codigo']);
     }
 
     public function calcularSubtotal(array $produtos): float
     {
         $subtotal = 0;
-        foreach ($this->items as $item) {
-            if (isset($produtos[$item['produto_id']])) {
-                $produto = $produtos[$item['produto_id']];
+        foreach ($this->items as $produto_id => $item) {
+            if (isset($produtos[$produto_id])) {
+                $produto = $produtos[$produto_id];
                 $subtotal += $produto->getPreco() * $item['quantidade'];
             }
         }

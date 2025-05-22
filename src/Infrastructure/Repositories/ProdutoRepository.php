@@ -85,7 +85,26 @@ class ProdutoRepository implements ProdutoRepositoryInterface
 
     public function delete(int $id): bool
     {
-        $stmt = $this->connection->prepare("DELETE FROM produtos WHERE id = ?");
-        return $stmt->execute([$id]);
+        try {
+            $this->connection->beginTransaction();
+
+            // Primeiro remove os registros relacionados em pedido_itens
+            $stmtPedidoItens = $this->connection->prepare("DELETE FROM pedido_itens WHERE produto_id = ?");
+            $stmtPedidoItens->execute([$id]);
+
+            // Depois remove os registros relacionados em estoque
+            $stmtEstoque = $this->connection->prepare("DELETE FROM estoque WHERE produto_id = ?");
+            $stmtEstoque->execute([$id]);
+
+            // Por fim, remove o produto
+            $stmtProduto = $this->connection->prepare("DELETE FROM produtos WHERE id = ?");
+            $stmtProduto->execute([$id]);
+
+            $this->connection->commit();
+            return true;
+        } catch (\Exception $e) {
+            $this->connection->rollBack();
+            throw new \RuntimeException("Erro ao excluir o produto: " . $e->getMessage());
+        }
     }
 } 

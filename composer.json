@@ -7,7 +7,8 @@
             "Domain\\": "src/Domain/",
             "Infrastructure\\": "src/Infrastructure/",
             "Application\\": "src/Application/",
-            "Presentation\\": "src/Presentation/"
+            "Presentation\\": "src/Presentation/",
+            "Helpers\\": "src/Helpers/"
         },
         "files": [
             "src/Helpers/functions.php"

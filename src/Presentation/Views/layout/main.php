@@ -30,7 +30,13 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/carrinho">
                             <i class="bi bi-cart"></i>
-                            <span class="badge bg-danger" id="cart-count">0</span>
+                            <span class="badge bg-danger" id="cart-count">
+                                <?php 
+                                    use Domain\Services\CarrinhoService;
+                                    $carrinhoService = new CarrinhoService();
+                                    echo $carrinhoService->obterCarrinho();
+                                ?>
+                            </span>
                         </a>
                     </li>
                     <li class="nav-item">

@@ -30,6 +30,10 @@ class ComposerStaticInitcc91589cef7565631e1358a609805987
         array (
             'Infrastructure\\' => 15,
         ),
+        'H' => 
+        array (
+            'Helpers\\' => 8,
+        ),
         'G' => 
         array (
             'GuzzleHttp\\Psr7\\' => 16,
@@ -71,6 +75,10 @@ class ComposerStaticInitcc91589cef7565631e1358a609805987
         'Infrastructure\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src/Infrastructure',
+        ),
+        'Helpers\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/src/Helpers',
         ),
         'GuzzleHttp\\Psr7\\' => 
         array (
