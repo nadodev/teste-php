@@ -55,38 +55,26 @@ CREATE TABLE cupons (
 - Cálculo de frete implementado
 - Interface do carrinho criada
 
-✅ Fase 3 – Funcionalidades Extras
-🔹 Tarefa 3.1 – Integração com ViaCEP
-Campo CEP no pedido
+✅ Fase 3 – Funcionalidades Extras [COMPLETED]
+🔹 Tarefa 3.1 – Integração com ViaCEP [DONE]
+- Serviço ViaCEP implementado
+- Consulta de CEP no carrinho
+- Exibição do endereço de entrega
 
-Chamada via https://viacep.com.br/ws/{cep}/json/
+🔹 Tarefa 3.2 – Cupons de desconto [DONE]
+- CRUD de cupons implementado
+- Validação de cupons
+- Aplicação de desconto no carrinho
 
-🔹 Tarefa 3.2 – Cupons de desconto
-Criar tela (ou script) para cadastrar cupons
+🔹 Tarefa 3.3 – Envio de E-mail [DONE]
+- Configuração do PHPMailer
+- Template de e-mail de confirmação
+- Envio após finalização do pedido
 
-Aplicar cupom ao carrinho se:
-
-Data de validade válida
-
-Subtotal ≥ valor mínimo do cupom
-
-🔹 Tarefa 3.3 – Envio de E-mail (após pedido)
-Usar PHPMailer (ou função mail()) com:
-
-Dados do pedido
-
-Endereço obtido via ViaCEP
-
-🔹 Tarefa 3.4 – Webhook para atualização de pedidos
-Endpoint POST /webhook
-
-Corpo: { id: <id_pedido>, status: <novo_status> }
-
-Ações:
-
-Se status = cancelado → deletar pedido
-
-Se outro status → atualizar no banco
+🔹 Tarefa 3.4 – Webhook para atualização de pedidos [DONE]
+- Endpoint POST /webhook implementado
+- Atualização de status
+- Deleção de pedidos cancelados
 
 ✅ Fase 4 – Frontend
 🔹 Tarefa 4.1 – Tela de cadastro de produto
