@@ -40,35 +40,20 @@ CREATE TABLE cupons (
 );
 
 
-✅ Fase 2 – Backend
-Sugestão: usar PHP Puro  com uma arquitetura limpa, e usando solid.
+✅ Fase 2 – Backend [COMPLETED]
+🔹 Tarefa 2.1 – Conectar ao banco [DONE]
+- Conexão PDO implementada
+- Configuração de ambiente (.env) criada
 
-🔹 Tarefa 2.1 – Conectar ao banco
-Criar conexão PDO
+🔹 Tarefa 2.2 – CRUD de Produto + Estoque [DONE]
+- Entidades e Repositórios criados
+- Formulário de cadastro implementado
+- Listagem de produtos implementada
 
-Configurar base de dados e environment file (.env)
-
-🔹 Tarefa 2.2 – CRUD de Produto + Estoque
-Criar formulário com campos:
-Nome, Preço, Variações (opcional), Quantidade em estoque
-
-No salvar, popular:
-produtos e estoque
-
-Permitir edição de produto e estoque
-
-🔹 Tarefa 2.3 – Implementar Sessão de Carrinho
-Botão Comprar adiciona o produto ao carrinho
-
-Gerencia quantidade em estoque e total
-
-Calcular frete com base na regra:
-
-R$52,00 a R$166,59 → R$15,00
-
-R$200 → frete grátis
-
-senão → R$20,00
+🔹 Tarefa 2.3 – Implementar Sessão de Carrinho [DONE]
+- Carrinho implementado com sessão
+- Cálculo de frete implementado
+- Interface do carrinho criada
 
 ✅ Fase 3 – Funcionalidades Extras
 🔹 Tarefa 3.1 – Integração com ViaCEP
