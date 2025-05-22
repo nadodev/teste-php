@@ -1,0 +1,17 @@
+{
+    "name": "erp/sistema",
+    "description": "Sistema ERP em PHP puro",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Domain\\": "src/Domain/",
+            "Infrastructure\\": "src/Infrastructure/",
+            "Application\\": "src/Application/",
+            "Presentation\\": "src/Presentation/"
+        }
+    },
+    "require": {
+        "php": ">=7.4",
+        "phpmailer/phpmailer": "^6.8"
+    }
+} 
