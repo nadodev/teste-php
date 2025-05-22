@@ -3,7 +3,7 @@
         'name' => 'erp/sistema',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '40f7ffb72700769965734f74a072abe5cd07eb7b',
+        'reference' => 'f70edef9c358336903103af48a7847983694bf47',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'erp/sistema' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '40f7ffb72700769965734f74a072abe5cd07eb7b',
+            'reference' => 'f70edef9c358336903103af48a7847983694bf47',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

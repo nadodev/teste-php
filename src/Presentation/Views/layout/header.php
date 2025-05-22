@@ -101,6 +101,11 @@
                             <i class="bi bi-cart me-1"></i>Carrinho
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="?route=cupons">
+                            <i class="bi bi-percent me-1"></i>Cupons
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>

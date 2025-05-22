@@ -15,18 +15,15 @@ class WebhookController
 
     public function atualizarPedido(): void
     {
-        // Only accept POST requests
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }
 
-        // Get JSON data
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);
 
-        // Validate input
         if (!isset($data['id']) || !isset($data['status'])) {
             http_response_code(400);
             echo json_encode(['error' => 'Invalid input']);

@@ -258,18 +258,78 @@ class CarrinhoController
             exit;
         }
 
-        // Aqui você pode adicionar validações adicionais
-        // como verificar se há itens no carrinho, se o pagamento foi processado, etc.
+        $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+        if (!$email) {
+            $_SESSION['message'] = [
+                'type' => 'danger',
+                'text' => 'Por favor, forneça um email válido.'
+            ];
+            header('Location: ?route=carrinho');
+            exit;
+        }
 
-        $this->carrinhoService->finalizarCompra();
+        // Carregar produtos e calcular valores
+        $itens = [];
+        $produtos = [];
+        $subtotal = 0;
 
-        $_SESSION['message'] = [
-            'type' => 'success',
-            'text' => 'Compra finalizada com sucesso! Obrigado pela preferência.'
-        ];
-        
-        header('Location: ?route=produtos');
-        exit;
+        foreach ($this->carrinhoService->getItems() as $item) {
+            $produto = $this->produtoRepository->findById($item['produto_id']);
+            if ($produto) {
+                $produtos[$produto->getId()] = $produto;
+                $estoque = $this->estoqueRepository->findByProdutoId($produto->getId())[0] ?? null;
+                $quantidade = $item['quantidade'];
+                $subtotal += $produto->getPreco() * $quantidade;
+
+                $itens[] = [
+                    'produto' => $produto,
+                    'estoque' => $estoque,
+                    'quantidade' => $quantidade,
+                    'subtotal' => $produto->getPreco() * $quantidade
+                ];
+            }
+        }
+
+        if (empty($itens)) {
+            $_SESSION['message'] = [
+                'type' => 'danger',
+                'text' => 'Seu carrinho está vazio.'
+            ];
+            header('Location: ?route=carrinho');
+            exit;
+        }
+
+        // Calcular valores finais
+        $cupom = $this->carrinhoService->getCupom();
+        $desconto = $cupom && $cupom->isValido() ? $cupom->getValorDesconto() : 0;
+        $subtotalComDesconto = max(0, $subtotal - $desconto);
+        $frete = $this->freteService->calcularFrete($subtotalComDesconto);
+        $total = $subtotalComDesconto + $frete;
+
+        try {
+            // Enviar email com os detalhes do pedido
+            $emailService = new \Domain\Services\EmailService();
+            $emailService->enviarDetalhesCompra($email, $itens, $subtotal, $desconto, $frete, $total);
+
+            // Limpar o carrinho
+            $this->carrinhoService->finalizarCompra();
+
+            $_SESSION['message'] = [
+                'type' => 'success',
+                'text' => 'Compra finalizada com sucesso! Os detalhes foram enviados para seu email.'
+            ];
+            
+            header('Location: ?route=produtos');
+            exit;
+
+        } catch (\Exception $e) {
+            $_SESSION['message'] = [
+                'type' => 'danger',
+                'text' => 'Erro ao processar seu pedido: ' . $e->getMessage()
+            ];
+            header('Location: ?route=carrinho');
+            exit;
+        }
     }
 
     private function getProdutosFromCarrinho(): array

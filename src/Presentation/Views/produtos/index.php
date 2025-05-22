@@ -40,8 +40,7 @@
                             </div>
                         </div>
                         
-                        <form action="?route=carrinho" method="post">
-                            <input type="hidden" name="action" value="adicionar">
+                        <form action="?route=carrinho/adicionar" method="post">
                             <input type="hidden" name="produto_id" value="<?= $produto->getId() ?>">
                             
                             <div class="mb-3">
