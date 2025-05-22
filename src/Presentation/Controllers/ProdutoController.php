@@ -23,7 +23,6 @@ class ProdutoController
         $produtos = $this->produtoRepository->findAll();
         $estoques = [];
         
-        // Load stock information for each product
         foreach ($produtos as $produto) {
             $estoqueProduto = $this->estoqueRepository->findByProdutoId($produto->getId());
             $estoques[$produto->getId()] = !empty($estoqueProduto) ? $estoqueProduto[0] : null;
@@ -72,12 +71,10 @@ class ProdutoController
             $variacao = $_POST['variacao'] ?? null;
             $quantidade = (int) ($_POST['quantidade'] ?? 0);
 
-            // Update produto
             $produto->setNome($nome);
             $produto->setPreco($preco);
             $this->produtoRepository->update($produto);
 
-            // Update or create estoque
             if ($estoque) {
                 $estoque->setVariacao($variacao);
                 $estoque->setQuantidade($quantidade);

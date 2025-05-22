@@ -4,18 +4,18 @@ namespace Domain\Entities;
 
 class Produto
 {
-    private int $id;
+    private ?int $id;
     private string $nome;
     private float $preco;
 
-    public function __construct(int $id, string $nome, float $preco)
+    public function __construct(?int $id, string $nome, float $preco)
     {
         $this->id = $id;
         $this->nome = $nome;
         $this->preco = $preco;
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -38,5 +38,10 @@ class Produto
     public function setPreco(float $preco): void
     {
         $this->preco = $preco;
+    }
+
+    public function setId(int $id): void
+    {
+        $this->id = $id;
     }
 } 

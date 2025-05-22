@@ -32,6 +32,26 @@ class Cupom
         return $this->valor_minimo;
     }
 
+    public function getValidade(): ?string
+    {
+        return $this->validade;
+    }
+
+    public function setValorDesconto(float $valor_desconto): void
+    {
+        $this->valor_desconto = $valor_desconto;
+    }
+
+    public function setValorMinimo(float $valor_minimo): void
+    {
+        $this->valor_minimo = $valor_minimo;
+    }
+
+    public function setValidade(?string $validade): void
+    {
+        $this->validade = $validade;
+    }
+
     public function isValido(): bool
     {
         if ($this->validade === null) {

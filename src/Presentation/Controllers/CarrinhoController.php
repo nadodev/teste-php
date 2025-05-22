@@ -2,175 +2,285 @@
 
 namespace Presentation\Controllers;
 
+use Domain\Entities\Produto;
+use Domain\Services\FreteService;
 use Domain\Services\CarrinhoService;
-use Domain\Services\ViaCEPService;
-use Domain\Services\EmailService;
 use Infrastructure\Repositories\ProdutoRepository;
+use Infrastructure\Repositories\EstoqueRepository;
 use Infrastructure\Repositories\CupomRepository;
-use Infrastructure\Database\Connection;
 
 class CarrinhoController
 {
-    private CarrinhoService $carrinho;
     private ProdutoRepository $produtoRepository;
+    private EstoqueRepository $estoqueRepository;
     private CupomRepository $cupomRepository;
-    private ViaCEPService $viaCEPService;
-    private EmailService $emailService;
-    private $connection;
+    private FreteService $freteService;
+    private CarrinhoService $carrinhoService;
 
     public function __construct()
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $this->carrinho = CarrinhoService::obterCarrinho();
         $this->produtoRepository = new ProdutoRepository();
+        $this->estoqueRepository = new EstoqueRepository();
         $this->cupomRepository = new CupomRepository();
-        $this->viaCEPService = new ViaCEPService();
-        $this->emailService = new EmailService();
-        $this->connection = Connection::getInstance();
+        $this->freteService = new FreteService();
+        $this->carrinhoService = new CarrinhoService();
     }
 
     public function index(): void
     {
-        $endereco = $_SESSION['endereco_entrega'] ?? null;
-        $carrinho = $this->carrinho;
+        $itens = [];
+        $produtos = [];
+        $subtotal = 0;
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $action = $_POST['action'] ?? '';
-            
-            switch ($action) {
-                case 'adicionar':
-                    $produto_id = (int) ($_POST['produto_id'] ?? 0);
-                    $quantidade = (int) ($_POST['quantidade'] ?? 1);
-                    $produto = $this->produtoRepository->findById($produto_id);
-                    
-                    if ($produto) {
-                        $this->carrinho->adicionarProduto($produto, $quantidade);
-                    }
-                    break;
+        // Carregar produtos
+        foreach ($this->carrinhoService->getItems() as $item) {
+            $produto = $this->produtoRepository->findById($item['produto_id']);
+            if ($produto) {
+                $produtos[$produto->getId()] = $produto;
+                $estoque = $this->estoqueRepository->findByProdutoId($produto->getId())[0] ?? null;
+                $quantidade = $item['quantidade'];
+                $subtotal += $produto->getPreco() * $quantidade;
 
-                case 'remover':
-                    $produto_id = (int) ($_POST['produto_id'] ?? 0);
-                    $this->carrinho->removerProduto($produto_id);
-                    break;
-
-                case 'atualizar':
-                    $produto_id = (int) ($_POST['produto_id'] ?? 0);
-                    $quantidade = (int) ($_POST['quantidade'] ?? 1);
-                    $this->carrinho->atualizarQuantidade($produto_id, $quantidade);
-                    break;
-
-                case 'limpar':
-                    $this->carrinho->limpar();
-                    unset($_SESSION['endereco_entrega']);
-                    break;
-
-                case 'aplicar_cupom':
-                    $codigo = $_POST['codigo_cupom'] ?? '';
-                    $cupom = $this->cupomRepository->findByCodigo($codigo);
-                    
-                    if ($cupom) {
-                        if (!$this->carrinho->aplicarCupom($cupom)) {
-                            $_SESSION['message'] = [
-                                'type' => 'danger',
-                                'text' => 'Cupom inválido ou valor mínimo não atingido'
-                            ];
-                        }
-                    } else {
-                        $_SESSION['message'] = [
-                            'type' => 'danger',
-                            'text' => 'Cupom não encontrado'
-                        ];
-                    }
-                    break;
-
-                case 'calcular_frete':
-                    $cep = $_POST['cep'] ?? '';
-                    $endereco = $this->viaCEPService->consultarCEP($cep);
-                    
-                    if ($endereco) {
-                        $_SESSION['endereco_entrega'] = $endereco;
-                    } else {
-                        $_SESSION['message'] = [
-                            'type' => 'danger',
-                            'text' => 'CEP não encontrado'
-                        ];
-                    }
-                    break;
-
-                case 'finalizar':
-                    if (empty($_SESSION['endereco_entrega'])) {
-                        $_SESSION['message'] = [
-                            'type' => 'danger',
-                            'text' => 'Informe o CEP para entrega'
-                        ];
-                        break;
-                    }
-
-                    $email = $_POST['email'] ?? '';
-                    if (empty($email)) {
-                        $_SESSION['message'] = [
-                            'type' => 'danger',
-                            'text' => 'Informe um e-mail válido'
-                        ];
-                        break;
-                    }
-
-                    try {
-                        $this->connection->beginTransaction();
-
-                        $stmt = $this->connection->prepare(
-                            "INSERT INTO pedidos (subtotal, frete, total, cep, status, email) VALUES (?, ?, ?, ?, ?, ?)"
-                        );
-                        $stmt->execute([
-                            $this->carrinho->getSubtotal(),
-                            $this->carrinho->getFrete(),
-                            $this->carrinho->getTotal(),
-                            $_SESSION['endereco_entrega']['cep'],
-                            'pendente',
-                            $email
-                        ]);
-
-                        // Enviar e-mail de confirmação
-                        $this->emailService->enviarConfirmacaoPedido(
-                            $email,
-                            $this->carrinho->getItems(),
-                            $this->carrinho->getSubtotal(),
-                            $this->carrinho->getFrete(),
-                            $this->carrinho->getDesconto(),
-                            $this->carrinho->getTotal(),
-                            $_SESSION['endereco_entrega']
-                        );
-
-                        $this->connection->commit();
-                        $this->carrinho->limpar();
-                        unset($_SESSION['endereco_entrega']);
-
-                        $_SESSION['message'] = [
-                            'type' => 'success',
-                            'text' => 'Pedido realizado com sucesso! Verifique seu e-mail.'
-                        ];
-                    } catch (\Exception $e) {
-                        $this->connection->rollBack();
-                        $_SESSION['message'] = [
-                            'type' => 'danger',
-                            'text' => 'Erro ao finalizar pedido'
-                        ];
-                    }
-                    break;
-            }
-
-            if ($action !== 'finalizar') {
-                header('Location: ?route=carrinho');
-                exit;
+                $itens[] = [
+                    'produto' => $produto,
+                    'estoque' => $estoque,
+                    'quantidade' => $quantidade,
+                    'subtotal' => $produto->getPreco() * $quantidade
+                ];
             }
         }
 
-        $message = $_SESSION['message'] ?? null;
-        unset($_SESSION['message']);
+        // Calcular valores
+        $cupom = $this->carrinhoService->getCupom();
+        $desconto = $cupom && $cupom->isValido() ? $cupom->getValorDesconto() : 0;
+        $subtotalComDesconto = max(0, $subtotal - $desconto);
+        
+        $frete = $this->freteService->calcularFrete($subtotalComDesconto);
+        $descricaoFrete = $this->freteService->getDescricaoFrete($subtotalComDesconto);
+        $valorRestanteFreteGratis = $this->freteService->getValorRestanteParaFreteGratis($subtotalComDesconto);
+        $total = $subtotalComDesconto + $frete;
 
         require_once __DIR__ . '/../Views/carrinho/index.php';
+    }
+
+    public function adicionar(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ?route=carrinho');
+            exit;
+        }
+
+        $produto_id = (int) ($_POST['produto_id'] ?? 0);
+        $quantidade = (int) ($_POST['quantidade'] ?? 1);
+
+        // Validar produto
+        $produto = $this->produtoRepository->findById($produto_id);
+        if (!$produto) {
+            $_SESSION['message'] = [
+                'type' => 'danger',
+                'text' => 'Produto não encontrado.'
+            ];
+            header('Location: ?route=produtos');
+            exit;
+        }
+
+        // Validar estoque
+        $estoque = $this->estoqueRepository->findByProdutoId($produto->getId())[0] ?? null;
+        if (!$estoque || $estoque->getQuantidade() < $quantidade) {
+            $_SESSION['message'] = [
+                'type' => 'danger',
+                'text' => 'Quantidade indisponível em estoque.'
+            ];
+            header('Location: ?route=produtos');
+            exit;
+        }
+
+        // Adicionar ao carrinho
+        $this->carrinhoService->adicionarItem($produto_id, $quantidade);
+
+        $_SESSION['message'] = [
+            'type' => 'success',
+            'text' => 'Produto adicionado ao carrinho!'
+        ];
+        header('Location: ?route=carrinho');
+        exit;
+    }
+
+    public function remover(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ?route=carrinho');
+            exit;
+        }
+
+        $produto_id = (int) ($_POST['produto_id'] ?? 0);
+        $this->carrinhoService->removerItem($produto_id);
+
+        $_SESSION['message'] = [
+            'type' => 'success',
+            'text' => 'Produto removido do carrinho!'
+        ];
+        header('Location: ?route=carrinho');
+        exit;
+    }
+
+    public function atualizar(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ?route=carrinho');
+            exit;
+        }
+
+        $produto_id = (int) ($_POST['produto_id'] ?? 0);
+        $quantidade = (int) ($_POST['quantidade'] ?? 1);
+
+        if ($quantidade < 1) {
+            $_SESSION['message'] = [
+                'type' => 'danger',
+                'text' => 'Quantidade inválida.'
+            ];
+            header('Location: ?route=carrinho');
+            exit;
+        }
+
+        // Validar produto e estoque
+        $produto = $this->produtoRepository->findById($produto_id);
+        $estoque = $this->estoqueRepository->findByProdutoId($produto_id)[0] ?? null;
+
+        if (!$produto || !$estoque) {
+            $_SESSION['message'] = [
+                'type' => 'danger',
+                'text' => 'Produto não encontrado.'
+            ];
+            header('Location: ?route=carrinho');
+            exit;
+        }
+
+        if ($quantidade > $estoque->getQuantidade()) {
+            $_SESSION['message'] = [
+                'type' => 'danger',
+                'text' => 'Quantidade indisponível em estoque.'
+            ];
+            header('Location: ?route=carrinho');
+            exit;
+        }
+
+        // Atualizar quantidade
+        $this->carrinhoService->atualizarQuantidade($produto_id, $quantidade);
+
+        $_SESSION['message'] = [
+            'type' => 'success',
+            'text' => 'Carrinho atualizado!'
+        ];
+        header('Location: ?route=carrinho');
+        exit;
+    }
+
+    public function aplicarCupom(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ?route=carrinho');
+            exit;
+        }
+
+        $codigo = $_POST['codigo'] ?? '';
+        $cupom = $this->cupomRepository->findByCodigo($codigo);
+
+        if (!$cupom) {
+            $_SESSION['message'] = [
+                'type' => 'danger',
+                'text' => 'Cupom não encontrado.'
+            ];
+            header('Location: ?route=carrinho');
+            exit;
+        }
+
+        if (!$cupom->isValido()) {
+            $_SESSION['message'] = [
+                'type' => 'danger',
+                'text' => 'Este cupom está expirado.'
+            ];
+            header('Location: ?route=carrinho');
+            exit;
+        }
+
+        // Verificar valor mínimo
+        $subtotal = $this->carrinhoService->calcularSubtotal(
+            $this->getProdutosFromCarrinho()
+        );
+
+        if ($subtotal < $cupom->getValorMinimo()) {
+            $_SESSION['message'] = [
+                'type' => 'danger',
+                'text' => sprintf(
+                    'O valor mínimo para este cupom é R$ %s',
+                    number_format($cupom->getValorMinimo(), 2, ',', '.')
+                )
+            ];
+            header('Location: ?route=carrinho');
+            exit;
+        }
+
+        $this->carrinhoService->aplicarCupom($cupom);
+
+        $_SESSION['message'] = [
+            'type' => 'success',
+            'text' => sprintf(
+                'Cupom aplicado! Desconto de R$ %s',
+                number_format($cupom->getValorDesconto(), 2, ',', '.')
+            )
+        ];
+        header('Location: ?route=carrinho');
+        exit;
+    }
+
+    public function removerCupom(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ?route=carrinho');
+            exit;
+        }
+
+        $this->carrinhoService->removerCupom();
+
+        $_SESSION['message'] = [
+            'type' => 'success',
+            'text' => 'Cupom removido com sucesso!'
+        ];
+        header('Location: ?route=carrinho');
+        exit;
+    }
+
+    public function finalizar(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ?route=carrinho');
+            exit;
+        }
+
+        // Aqui você pode adicionar validações adicionais
+        // como verificar se há itens no carrinho, se o pagamento foi processado, etc.
+
+        $this->carrinhoService->finalizarCompra();
+
+        $_SESSION['message'] = [
+            'type' => 'success',
+            'text' => 'Compra finalizada com sucesso! Obrigado pela preferência.'
+        ];
+        
+        header('Location: ?route=produtos');
+        exit;
+    }
+
+    private function getProdutosFromCarrinho(): array
+    {
+        $produtos = [];
+        foreach ($this->carrinhoService->getItems() as $item) {
+            $produto = $this->produtoRepository->findById($item['produto_id']);
+            if ($produto) {
+                $produtos[$produto->getId()] = $produto;
+            }
+        }
+        return $produtos;
     }
 } 

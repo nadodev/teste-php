@@ -27,11 +27,10 @@ class CupomRepository implements CupomRepositoryInterface
         }
 
         return new Cupom(
-            $result['id'],
             $result['codigo'],
-            $result['valor_desconto'],
-            new \DateTime($result['validade']),
-            $result['valor_minimo']
+            (float) $result['valor_desconto'],
+            (float) $result['valor_minimo'],
+            $result['validade']
         );
     }
 
@@ -43,11 +42,10 @@ class CupomRepository implements CupomRepositoryInterface
 
         foreach ($results as $result) {
             $cupons[] = new Cupom(
-                $result['id'],
                 $result['codigo'],
-                $result['valor_desconto'],
-                new \DateTime($result['validade']),
-                $result['valor_minimo']
+                (float) $result['valor_desconto'],
+                (float) $result['valor_minimo'],
+                $result['validade']
             );
         }
 
@@ -57,27 +55,34 @@ class CupomRepository implements CupomRepositoryInterface
     public function save(Cupom $cupom): Cupom
     {
         $stmt = $this->connection->prepare(
-            "INSERT INTO cupons (codigo, valor_desconto, validade, valor_minimo) VALUES (?, ?, ?, ?)"
+            "INSERT INTO cupons (codigo, valor_desconto, valor_minimo, validade) VALUES (?, ?, ?, ?)"
         );
         $stmt->execute([
             $cupom->getCodigo(),
             $cupom->getValorDesconto(),
-            $cupom->getValidade()->format('Y-m-d'),
-            $cupom->getValorMinimo()
+            $cupom->getValorMinimo(),
+            $cupom->getValidade()
         ]);
-        
-        return new Cupom(
-            $this->connection->lastInsertId(),
-            $cupom->getCodigo(),
-            $cupom->getValorDesconto(),
-            $cupom->getValidade(),
-            $cupom->getValorMinimo()
-        );
+
+        return $cupom; // Como o código é a chave primária, retornamos o mesmo objeto
     }
 
-    public function delete(int $id): bool
+    public function update(Cupom $cupom): bool
     {
-        $stmt = $this->connection->prepare("DELETE FROM cupons WHERE id = ?");
-        return $stmt->execute([$id]);
+        $stmt = $this->connection->prepare(
+            "UPDATE cupons SET valor_desconto = ?, valor_minimo = ?, validade = ? WHERE codigo = ?"
+        );
+        return $stmt->execute([
+            $cupom->getValorDesconto(),
+            $cupom->getValorMinimo(),
+            $cupom->getValidade(),
+            $cupom->getCodigo()
+        ]);
+    }
+
+    public function delete(string $codigo): bool
+    {
+        $stmt = $this->connection->prepare("DELETE FROM cupons WHERE codigo = ?");
+        return $stmt->execute([$codigo]);
     }
 } 

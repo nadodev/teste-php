@@ -44,6 +44,36 @@ switch ($route) {
         $controller->index();
         break;
 
+    case 'carrinho/adicionar':
+        require_once __DIR__ . '/../src/Presentation/Controllers/CarrinhoController.php';
+        $controller = new Presentation\Controllers\CarrinhoController();
+        $controller->adicionar();
+        break;
+
+    case 'carrinho/remover':
+        require_once __DIR__ . '/../src/Presentation/Controllers/CarrinhoController.php';
+        $controller = new Presentation\Controllers\CarrinhoController();
+        $controller->remover();
+        break;
+
+    case 'carrinho/atualizar':
+        require_once __DIR__ . '/../src/Presentation/Controllers/CarrinhoController.php';
+        $controller = new Presentation\Controllers\CarrinhoController();
+        $controller->atualizar();
+        break;
+
+    case 'carrinho/aplicar-cupom':
+        require_once __DIR__ . '/../src/Presentation/Controllers/CarrinhoController.php';
+        $controller = new Presentation\Controllers\CarrinhoController();
+        $controller->aplicarCupom();
+        break;
+
+    case 'carrinho/remover-cupom':
+        require_once __DIR__ . '/../src/Presentation/Controllers/CarrinhoController.php';
+        $controller = new Presentation\Controllers\CarrinhoController();
+        $controller->removerCupom();
+        break;
+
     case 'cupons':
         require_once __DIR__ . '/../src/Presentation/Controllers/CupomController.php';
         $controller = new Presentation\Controllers\CupomController();
@@ -54,6 +84,18 @@ switch ($route) {
         require_once __DIR__ . '/../src/Presentation/Controllers/CupomController.php';
         $controller = new Presentation\Controllers\CupomController();
         $controller->create();
+        break;
+
+    case 'cupom/editar':
+        require_once __DIR__ . '/../src/Presentation/Controllers/CupomController.php';
+        $controller = new Presentation\Controllers\CupomController();
+        $controller->edit();
+        break;
+
+    case 'cupom/excluir':
+        require_once __DIR__ . '/../src/Presentation/Controllers/CupomController.php';
+        $controller = new Presentation\Controllers\CupomController();
+        $controller->delete();
         break;
 
     case 'webhook':

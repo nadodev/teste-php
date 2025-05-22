@@ -27,9 +27,9 @@ class ProdutoRepository implements ProdutoRepositoryInterface
         }
 
         return new Produto(
-            $result['id'],
+            (int) $result['id'],
             $result['nome'],
-            $result['preco']
+            (float) $result['preco']
         );
     }
 
@@ -41,9 +41,9 @@ class ProdutoRepository implements ProdutoRepositoryInterface
 
         foreach ($results as $result) {
             $produtos[] = new Produto(
-                $result['id'],
+                (int) $result['id'],
                 $result['nome'],
-                $result['preco']
+                (float) $result['preco']
             );
         }
 
@@ -55,15 +55,18 @@ class ProdutoRepository implements ProdutoRepositoryInterface
         $stmt = $this->connection->prepare("INSERT INTO produtos (nome, preco) VALUES (?, ?)");
         $stmt->execute([$produto->getNome(), $produto->getPreco()]);
         
-        return new Produto(
-            $this->connection->lastInsertId(),
-            $produto->getNome(),
-            $produto->getPreco()
-        );
+        $id = (int) $this->connection->lastInsertId();
+        $produto->setId($id);
+        
+        return $produto;
     }
 
     public function update(Produto $produto): bool
     {
+        if ($produto->getId() === null) {
+            return false;
+        }
+
         $stmt = $this->connection->prepare("UPDATE produtos SET nome = ?, preco = ? WHERE id = ?");
         return $stmt->execute([
             $produto->getNome(),

@@ -28,7 +28,6 @@ class CupomController
             $valor_minimo = (float) ($_POST['valor_minimo'] ?? 0);
             $validade = $_POST['validade'] ?? null;
 
-            // Validações
             $errors = [];
             if (empty($codigo)) {
                 $errors[] = "O código do cupom é obrigatório.";
@@ -43,7 +42,6 @@ class CupomController
                 $errors[] = "A data de validade é obrigatória.";
             }
 
-            // Verifica se já existe um cupom com este código
             $cupomExistente = $this->cupomRepository->findByCodigo($codigo);
             if ($cupomExistente) {
                 $errors[] = "Já existe um cupom com este código.";
@@ -85,7 +83,6 @@ class CupomController
             $valor_minimo = (float) ($_POST['valor_minimo'] ?? 0);
             $validade = $_POST['validade'] ?? null;
 
-            // Validações
             $errors = [];
             if ($valor_desconto <= 0) {
                 $errors[] = "O valor do desconto deve ser maior que zero.";
