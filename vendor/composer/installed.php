@@ -3,7 +3,7 @@
         'name' => 'erp/sistema',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'bc11c72132ba635bf98de20291faabbaa31efdba',
+        'reference' => '4ab9e33aea5c919c70985fe514907d8a25fd9e6d',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'erp/sistema' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'bc11c72132ba635bf98de20291faabbaa31efdba',
+            'reference' => '4ab9e33aea5c919c70985fe514907d8a25fd9e6d',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

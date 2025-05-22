@@ -2,94 +2,101 @@
 
 namespace Domain\Services;
 
-use Exception;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
+use Infrastructure\Config\Env;
 
 class EmailService
 {
-    private string $apiKey;
+    private string $host;
+    private string $port;
+    private string $username;
+    private string $password;
     private string $fromEmail;
     private string $fromName;
-    private string $testEmail;
 
     public function __construct()
     {
-        $this->apiKey = 're_NLzSyNXc_GjhSp3zkgyqi1ks2wqzsGEuP';
-        // Usando um domínio verificado do Resend temporariamente
-        $this->fromEmail = 'onboarding@resend.dev';
-        $this->fromName = 'ERP Store';
-        $this->testEmail = 'leonardo.geja@unoesc.edu.br'; // Email verificado no Resend
+        $this->host = Env::get('EMAIL_HOST');
+        $this->port = Env::get('EMAIL_PORT');
+        $this->username = Env::get('EMAIL_USERNAME');
+        $this->password = Env::get('EMAIL_PASSWORD');
+        $this->fromEmail = Env::get('EMAIL_FROM');
+        $this->fromName = Env::get('EMAIL_NAME');
+
     }
 
     public function enviarDetalhesCompra(string $email, array $itens, float $subtotal, float $desconto, float $frete, float $total): void
     {
         try {
-            // Em modo de teste, sempre envia para o email de teste
-            $destinationEmail = $this->testEmail;
-            error_log("Modo de teste: redirecionando email de {$email} para {$destinationEmail}");
+            error_log("=== INICIANDO ENVIO DE EMAIL ===");
+            error_log("Destinatário: " . $email);
             
-            // Gera o conteúdo do email
             $html = $this->gerarHtmlPedido($itens, $subtotal, $desconto, $frete, $total);
             $text = $this->gerarTextoPlainPedido($itens, $subtotal, $desconto, $frete, $total);
             
-            // Adiciona informação sobre o email original no corpo
-            $html = "<div style='background-color: #f8f9fa; padding: 10px; margin-bottom: 20px; border: 1px solid #dee2e6; border-radius: 4px;'>
-                        <strong>MODO DE TESTE</strong><br>
-                        Email original seria enviado para: {$email}
-                    </div>" . $html;
+            error_log("Conteúdo do email gerado com sucesso");
             
-            error_log("Iniciando envio do email via Resend API...");
+            $mail = new PHPMailer(true);
+
+            // Configuração de debug mais detalhada
+            $mail->SMTPDebug = SMTP::DEBUG_CONNECTION;
+            $mail->Debugoutput = function($str, $level) {
+                error_log("PHPMailer Debug [$level]: $str");
+            };
+
+            // Configurações do servidor
+            error_log("Configurando servidor SMTP...");
+            $mail->isSMTP();
+            $mail->Host = $this->host;
+            $mail->SMTPAuth = true;
+            $mail->Username = $this->username;
+            $mail->Password = $this->password;
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port = $this->port;
+            $mail->CharSet = 'UTF-8';
             
-            // Prepara os dados para a API do Resend
-            $data = [
-                'from' => "{$this->fromName} <{$this->fromEmail}>",
-                'to' => [$destinationEmail],
-                'subject' => '[TESTE] Detalhes do pedido - ERP Store',
-                'html' => $html,
-                'text' => $text,
-                'reply_to' => $this->testEmail
-            ];
+            $mail->Timeout = 30;
+            $mail->SMTPKeepAlive = false;
 
-            // Configuração da requisição
-            $ch = curl_init('https://api.resend.com/emails');
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Authorization: Bearer ' . $this->apiKey,
-                'Content-Type: application/json'
-            ]);
+            $mail->SMTPOptions = array(
+                'ssl' => array(
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true
+                )
+            );
+
+            error_log("Configurando remetente e destinatário...");
             
-            // Desabilita a verificação SSL
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            // Remetente e destinatário
+            $mail->setFrom($this->fromEmail, $this->fromName);
+            $mail->addAddress($email);
+            $mail->addReplyTo($this->fromEmail);
 
-            // Faz a requisição
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $error = curl_error($ch);
-            curl_close($ch);
+            // Conteúdo
+            $mail->isHTML(true);
+            $mail->Subject = 'Detalhes do pedido - ERP Store';
+            $mail->Body = $html;
+            $mail->AltBody = $text;
 
-            // Log da resposta para debug
-            error_log("Resposta do Resend: " . $response);
-            error_log("HTTP Code: " . $httpCode);
-
-            // Verifica a resposta
-            if ($error) {
-                throw new Exception("Erro CURL: " . $error);
-            }
-
-            if ($httpCode !== 200) {
-                $responseData = json_decode($response, true);
-                $errorMessage = isset($responseData['message']) ? $responseData['message'] : 'Erro desconhecido';
-                throw new Exception("Erro na API do Resend (HTTP {$httpCode}): {$errorMessage}");
-            }
-
-            error_log("Email enviado com sucesso para: {$destinationEmail} (original: {$email})");
+            error_log("Tentando enviar email...");
+            
+            // Tenta enviar o email com timeout
+            set_time_limit(30);
+            $mail->send();
+            
 
         } catch (Exception $e) {
-            $erro = "Erro ao enviar email: {$e->getMessage()}";
-            error_log($erro);
-            throw new \RuntimeException($erro);
+            error_log("Mensagem de erro: " . $e->getMessage());
+            error_log("Código do erro: " . $e->getCode());
+            error_log("Arquivo: " . $e->getFile());
+            error_log("Linha: " . $e->getLine());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            error_log("============================");
+            
+            throw new \RuntimeException("Não foi possível enviar o email de confirmação. Por favor, tente novamente mais tarde.");
         }
     }
 
