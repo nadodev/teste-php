@@ -1,11 +1,9 @@
-<?php require_once __DIR__ . '/../layout/header.php'; ?>
-
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="page-header">
             <i class="bi bi-receipt me-2"></i>Pedido #<?= str_pad($pedido->getId(), 6, '0', STR_PAD_LEFT) ?>
         </h1>
-        <a href="?route=pedidos" class="btn btn-outline-secondary">
+        <a href="/pedidos" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-2"></i>Voltar para Pedidos
         </a>
     </div>
@@ -101,5 +99,3 @@
         </div>
     </div>
 </div>
-
-<?php require_once __DIR__ . '/../layout/footer.php'; ?> 

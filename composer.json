@@ -8,7 +8,10 @@
             "Infrastructure\\": "src/Infrastructure/",
             "Application\\": "src/Application/",
             "Presentation\\": "src/Presentation/"
-        }
+        },
+        "files": [
+            "src/Helpers/functions.php"
+        ]
     },
     "require": {
         "php": ">=7.4",

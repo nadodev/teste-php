@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'erp/sistema',
-        'pretty_version' => 'dev-master',
-        'version' => 'dev-master',
-        'reference' => '6002c23b3460b68d04d2d9809a57ff3de46b1e67',
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => 'bc11c72132ba635bf98de20291faabbaa31efdba',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'erp/sistema' => array(
-            'pretty_version' => 'dev-master',
-            'version' => 'dev-master',
-            'reference' => '6002c23b3460b68d04d2d9809a57ff3de46b1e67',
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'bc11c72132ba635bf98de20291faabbaa31efdba',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

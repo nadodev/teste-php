@@ -1,5 +1,3 @@
-<?php require_once __DIR__ . '/../layout/header.php'; ?>
-
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="page-header">
@@ -21,7 +19,7 @@
             <i class="bi bi-receipt display-1 text-muted mb-4"></i>
             <h2 class="h4 text-muted">Nenhum pedido encontrado</h2>
             <p class="text-muted mb-4">Não há pedidos registrados no sistema.</p>
-            <a href="?route=produtos" class="btn btn-primary">
+            <a href="/produtos" class="btn btn-primary">
                 <i class="bi bi-cart-plus me-2"></i>Fazer uma compra
             </a>
         </div>
@@ -45,7 +43,7 @@
                             <?php foreach ($pedidos as $pedido): ?>
                                 <tr>
                                     <td>
-                                        <a href="?route=pedidos/detalhes&id=<?= $pedido->getId() ?>" class="text-decoration-none">
+                                        <a href="/pedidos/detalhes&id=<?= $pedido->getId() ?>" class="text-decoration-none">
                                             #<?= str_pad($pedido->getId(), 6, '0', STR_PAD_LEFT) ?>
                                         </a>
                                     </td>
@@ -59,7 +57,7 @@
                                         </span>
                                     </td>
                                     <td class="text-end">
-                                        <a href="?route=pedidos/detalhes&id=<?= $pedido->getId() ?>" 
+                                        <a href="/pedidos/detalhes&id=<?= $pedido->getId() ?>" 
                                            class="btn btn-sm btn-outline-primary"
                                            title="Ver detalhes">
                                             <i class="bi bi-eye"></i>
@@ -74,5 +72,3 @@
         </div>
     <?php endif; ?>
 </div>
-
-<?php require_once __DIR__ . '/../layout/footer.php'; ?> 

@@ -4,20 +4,25 @@ namespace Presentation\Controllers;
 
 use Domain\Entities\Cupom;
 use Infrastructure\Repositories\CupomRepository;
+use Presentation\View;
 
 class CupomController
 {
     private CupomRepository $cupomRepository;
+    private View $view;
 
     public function __construct()
     {
         $this->cupomRepository = new CupomRepository();
+        $this->view = new View();
     }
 
     public function index(): void
     {
         $cupons = $this->cupomRepository->findAll();
-        require_once __DIR__ . '/../Views/cupons/index.php';
+        $this->view->render('cupons/index', [
+            'cupons' => $cupons
+        ]);
     }
 
     public function create(): void
@@ -60,12 +65,12 @@ class CupomController
                     'type' => 'success',
                     'text' => 'Cupom criado com sucesso!'
                 ];
-                header('Location: ?route=cupons');
+                header('Location: /cupons');
                 exit;
             }
         }
 
-        require_once __DIR__ . '/../Views/cupons/form.php';
+        $this->view->render('cupons/form');
     }
 
     public function edit(): void
@@ -74,7 +79,7 @@ class CupomController
         $cupom = $this->cupomRepository->findByCodigo($codigo);
         
         if (!$cupom) {
-            header('Location: ?route=cupons');
+            header('Location: /cupons');
             exit;
         }
 
@@ -107,18 +112,20 @@ class CupomController
                     'type' => 'success',
                     'text' => 'Cupom atualizado com sucesso!'
                 ];
-                header('Location: ?route=cupons');
+                header('Location: /cupons');
                 exit;
             }
         }
 
-        require_once __DIR__ . '/../Views/cupons/form.php';
+        $this->view->render('cupons/form', [
+            'cupom' => $cupom
+        ]);
     }
 
     public function delete(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: ?route=cupons');
+            header('Location: /cupons');
             exit;
         }
 
@@ -138,7 +145,7 @@ class CupomController
             ];
         }
 
-        header('Location: ?route=cupons');
+        header('Location: /cupons');
         exit;
     }
 } 

@@ -1,11 +1,9 @@
-<?php require_once __DIR__ . '/../layout/header.php'; ?>
-
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="page-header">
             <i class="bi bi-ticket-perforated me-2"></i>Cupons de Desconto
         </h1>
-        <a href="?route=cupom/novo" class="btn btn-primary">
+        <a href="/cupom/novo" class="btn btn-primary">
             <i class="bi bi-plus-circle me-2"></i>Novo Cupom
         </a>
     </div>
@@ -68,7 +66,7 @@
                                     </td>
                                     <td class="text-end">
                                         <div class="btn-group">
-                                            <a href="?route=cupom/editar&codigo=<?= urlencode($cupom->getCodigo()) ?>" 
+                                            <a href="/cupom/editar?codigo=<?= urlencode($cupom->getCodigo()) ?>" 
                                                class="btn btn-sm btn-outline-primary"
                                                title="Editar cupom">
                                                 <i class="bi bi-pencil-square"></i>
@@ -109,7 +107,7 @@
                     </p>
                 </div>
                 <div class="modal-footer">
-                    <form action="?route=cupom/excluir" method="post">
+                    <form action="/cupom/excluir" method="post">
                         <input type="hidden" name="codigo" value="<?= htmlspecialchars($cupom->getCodigo()) ?>">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-danger">
@@ -121,5 +119,3 @@
         </div>
     </div>
 <?php endforeach; ?>
-
-<?php require_once __DIR__ . '/../layout/footer.php'; ?> 

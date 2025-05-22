@@ -1,5 +1,11 @@
 <?php
 
+// Configuração de ambiente
+define('ENVIRONMENT', 'development');
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
 // Start session
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -10,9 +16,29 @@ require_once __DIR__ . '/../vendor/autoload.php';
 // Load configuration
 Infrastructure\Config\Config::load();
 
-// Basic routing
-$route = $_GET['route'] ?? 'home';
+// Pega a rota da URL amigável
+$requestUri = $_SERVER['REQUEST_URI'];
+$scriptName = dirname($_SERVER['SCRIPT_NAME']);
 
+// Remove o path base (caso esteja em subdiretório)
+if (strpos($requestUri, $scriptName) === 0) {
+    $route = substr($requestUri, strlen($scriptName));
+} else {
+    $route = $requestUri;
+}
+
+// Remove query string
+$route = explode('?', $route, 2)[0];
+
+// Remove barras no início/fim
+$route = trim($route, '/');
+
+// Se vazio, define rota padrão
+if ($route === '') {
+    $route = 'produtos';
+}
+
+// Basic routing
 switch ($route) {
     case 'produtos':
         require_once __DIR__ . '/../src/Presentation/Controllers/ProdutoController.php';
@@ -129,6 +155,6 @@ switch ($route) {
         break;
     
     default:
-        header('Location: ?route=produtos');
+        header('Location: /produtos');
         exit;
 } 

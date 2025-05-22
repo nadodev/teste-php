@@ -58,6 +58,10 @@ class EmailService
                 'Authorization: Bearer ' . $this->apiKey,
                 'Content-Type: application/json'
             ]);
+            
+            // Desabilita a verificação SSL
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
             // Faz a requisição
             $response = curl_exec($ch);

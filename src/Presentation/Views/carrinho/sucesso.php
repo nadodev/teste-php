@@ -1,5 +1,3 @@
-<?php require_once __DIR__ . '/../layout/header.php'; ?>
-
 <div class="container py-5">
     <div class="text-center">
         <i class="bi bi-check-circle text-success display-1 mb-4"></i>
@@ -44,7 +42,7 @@
                     </div>
                 </div>
 
-                <a href="?route=produtos" class="btn btn-primary">
+                <a href="/produtos" class="btn btn-primary">
                     <i class="bi bi-bag me-2"></i>Continuar Comprando
                 </a>
             </div>
@@ -66,5 +64,3 @@
         </div>
     </div>
 </div>
-
-<?php require_once __DIR__ . '/../layout/footer.php'; ?> 

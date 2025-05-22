@@ -64,15 +64,23 @@ class ProdutoRepository implements ProdutoRepositoryInterface
     public function update(Produto $produto): bool
     {
         if ($produto->getId() === null) {
-            return false;
+            throw new \RuntimeException("ID do produto não pode ser nulo.");
         }
 
         $stmt = $this->connection->prepare("UPDATE produtos SET nome = ?, preco = ? WHERE id = ?");
-        return $stmt->execute([
+        $result = $stmt->execute([
             $produto->getNome(),
             $produto->getPreco(),
             $produto->getId()
         ]);
+
+
+        if (!$result) {
+            throw new \RuntimeException("Erro ao atualizar o produto: " . implode(", ", $stmt->errorInfo()));
+        }
+
+
+        return true;
     }
 
     public function delete(int $id): bool

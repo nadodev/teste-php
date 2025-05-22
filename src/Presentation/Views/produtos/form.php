@@ -1,5 +1,3 @@
-<?php require_once __DIR__ . '/../layout/header.php'; ?>
-
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
@@ -19,7 +17,7 @@
                         </div>
                     <?php endif; ?>
 
-                    <form action="?route=produto/<?= isset($produto) ? 'editar&id=' . $produto->getId() : 'novo' ?>" method="post" class="needs-validation" novalidate>
+                    <form action="<?= isset($produto) ? '/produto/editar?id=' . $produto->getId() : '/produto/novo' ?>" method="post" class="needs-validation" novalidate>
                         <?php if (isset($produto)): ?>
                             <input type="hidden" name="id" value="<?= $produto->getId() ?>">
                         <?php endif; ?>
@@ -86,7 +84,7 @@
                                 <i class="bi <?= isset($produto) ? 'bi-check-lg' : 'bi-plus-lg' ?> me-2"></i>
                                 <?= isset($produto) ? 'Atualizar' : 'Cadastrar' ?> Produto
                             </button>
-                            <a href="?route=produtos" class="btn btn-outline-secondary">
+                            <a href="/produtos" class="btn btn-outline-secondary">
                                 <i class="bi bi-arrow-left me-2"></i>Voltar
                             </a>
                         </div>
@@ -113,5 +111,3 @@
     })
 })()
 </script>
-
-<?php require_once __DIR__ . '/../layout/footer.php'; ?> 

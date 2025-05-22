@@ -1,11 +1,10 @@
-<?php require_once __DIR__ . '/../layout/header.php'; ?>
 
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="page-header">
             <i class="bi bi-box-seam me-2"></i>Produtos
         </h1>
-        <a href="?route=produto/novo" class="btn btn-primary">
+        <a href="/produto/novo" class="btn btn-primary">
             <i class="bi bi-plus-circle me-2"></i>Novo Produto
         </a>
     </div>
@@ -24,7 +23,7 @@
                                     R$ <?= number_format($produto->getPreco(), 2, ',', '.') ?>
                                 </span>
                                 <div class="btn-group">
-                                    <a href="?route=produto/editar&id=<?= $produto->getId() ?>" 
+                                    <a href="/produto/editar?id=<?= $produto->getId() ?>" 
                                        class="btn btn-sm btn-outline-primary" 
                                        title="Editar produto">
                                         <i class="bi bi-pencil-square"></i>
@@ -40,7 +39,7 @@
                             </div>
                         </div>
                         
-                        <form action="?route=carrinho/adicionar" method="post">
+                        <form action="/carrinho/adicionar" method="post">
                             <input type="hidden" name="produto_id" value="<?= $produto->getId() ?>">
                             
                             <div class="mb-3">
@@ -95,7 +94,7 @@
                             </p>
                         </div>
                         <div class="modal-footer">
-                            <form action="?route=produto/excluir" method="post">
+                            <form action="/produto/excluir" method="post">
                                 <input type="hidden" name="id" value="<?= $produto->getId() ?>">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                                 <button type="submit" class="btn btn-danger">
@@ -109,5 +108,3 @@
         <?php endforeach; ?>
     </div>
 </div>
-
-<?php require_once __DIR__ . '/../layout/footer.php'; ?> 

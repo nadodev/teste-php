@@ -78,7 +78,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark mb-4">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="?route=home">
+            <a class="navbar-brand fw-bold" href="/home">
                 <i class="bi bi-shop me-2"></i>ERP System
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -87,27 +87,27 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="?route=produtos">
+                        <a class="nav-link" href="/produtos">
                             <i class="bi bi-box-seam me-1"></i>Produtos
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="?route=produto/novo">
+                        <a class="nav-link" href="/produto/novo">
                             <i class="bi bi-plus-circle me-1"></i>Novo Produto
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="?route=carrinho">
+                        <a class="nav-link" href="/carrinho">
                             <i class="bi bi-cart me-1"></i>Carrinho
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="?route=pedidos">
+                        <a class="nav-link" href="/pedidos">
                             <i class="bi bi-receipt me-1"></i>Pedidos
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="?route=cupons">
+                        <a class="nav-link" href="/cupons">
                             <i class="bi bi-percent me-1"></i>Cupons
                         </a>
                     </li>

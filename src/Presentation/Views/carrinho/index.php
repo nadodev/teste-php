@@ -1,5 +1,3 @@
-<?php require_once __DIR__ . '/../layout/header.php'; ?>
-
 <div class="container py-4">
     <h1 class="page-header mb-4">
         <i class="bi bi-cart3 me-2"></i>Carrinho de Compras
@@ -19,7 +17,7 @@
             <i class="bi bi-cart3 display-1 text-muted mb-4"></i>
             <h2 class="h4 text-muted">Seu carrinho está vazio</h2>
             <p class="text-muted mb-4">Adicione produtos para continuar comprando.</p>
-            <a href="?route=produtos" class="btn btn-primary">
+            <a href="/produtos" class="btn btn-primary">
                 <i class="bi bi-arrow-left me-2"></i>Voltar para Produtos
             </a>
         </div>
@@ -38,7 +36,7 @@
                                         <?php endif; ?>
                                     </div>
                                     <div class="mt-2">
-                                        <form action="?route=carrinho/atualizar" method="post" class="d-inline-block">
+                                        <form action="/carrinho/atualizar" method="post" class="d-inline-block">
                                             <input type="hidden" name="produto_id" value="<?= $item['produto']->getId() ?>">
                                             <div class="input-group input-group-sm" style="width: 150px;">
                                                 <span class="input-group-text">Qtd</span>
@@ -51,7 +49,7 @@
                                                        onchange="this.form.submit()">
                                             </div>
                                         </form>
-                                        <form action="?route=carrinho/remover" method="post" class="d-inline-block ms-2">
+                                        <form action="/carrinho/remover" method="post" class="d-inline-block ms-2">
                                             <input type="hidden" name="produto_id" value="<?= $item['produto']->getId() ?>">
                                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                                 <i class="bi bi-trash"></i>
@@ -85,7 +83,7 @@
                                             Desconto: R$ <?= number_format($desconto, 2, ',', '.') ?>
                                         </div>
                                     </div>
-                                    <form action="?route=carrinho/remover-cupom" method="post">
+                                    <form action="/carrinho/remover-cupom" method="post">
                                         <button type="submit" class="btn btn-sm btn-outline-danger" title="Remover cupom">
                                             <i class="bi bi-x-lg"></i>
                                         </button>
@@ -93,7 +91,7 @@
                                 </div>
                             </div>
                         <?php else: ?>
-                            <form action="?route=carrinho/aplicar-cupom" method="post">
+                            <form action="/carrinho/aplicar-cupom" method="post">
                                 <div class="input-group">
                                     <input type="text" 
                                            class="form-control" 
@@ -148,7 +146,7 @@
                         </div>
 
                         <div class="d-grid gap-2">
-                            <form action="?route=carrinho/finalizar" method="post" id="formFinalizarCompra">
+                            <form action="/carrinho/finalizar" method="post" id="formFinalizarCompra">
                                 <div class="mb-3">
                                     <label for="email" class="form-label">Email para receber os detalhes do pedido</label>
                                     <input type="email" 
@@ -223,7 +221,7 @@
                                     <i class="bi bi-credit-card me-2"></i>Finalizar Compra
                                 </button>
                             </form>
-                            <a href="?route=produtos" class="btn btn-outline-secondary">
+                            <a href="/produtos" class="btn btn-outline-secondary">
                                 <i class="bi bi-arrow-left me-2"></i>Continuar Comprando
                             </a>
                         </div>
@@ -295,5 +293,3 @@ document.getElementById('buscarCep').addEventListener('click', function() {
         });
 });
 </script>
-
-<?php require_once __DIR__ . '/../layout/footer.php'; ?> 

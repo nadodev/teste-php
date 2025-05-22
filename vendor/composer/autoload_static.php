@@ -11,6 +11,7 @@ class ComposerStaticInitcc91589cef7565631e1358a609805987
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         '0754989a10baadda533479884b399278' => __DIR__ . '/..' . '/resend/resend-php/src/Resend.php',
+        '678fc18ac655c7f75ffeeda84198e0bc' => __DIR__ . '/../..' . '/src/Helpers/functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -52,8 +53,8 @@ class ComposerStaticInitcc91589cef7565631e1358a609805987
         ),
         'Psr\\Http\\Message\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/http-message/src',
-            1 => __DIR__ . '/..' . '/psr/http-factory/src',
+            0 => __DIR__ . '/..' . '/psr/http-factory/src',
+            1 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
         'Psr\\Http\\Client\\' => 
         array (

@@ -4,6 +4,6 @@ return [
     'host' => 'localhost',
     'dbname' => 'erp_teste',
     'username' => 'root',
-    'password' => '',
+    'password' => '1234',
     'charset' => 'utf8mb4'
 ]; 

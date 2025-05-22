@@ -1,5 +1,3 @@
-<?php require_once __DIR__ . '/../layout/header.php'; ?>
-
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
@@ -81,7 +79,7 @@
                         </div>
 
                         <div class="d-flex gap-2">
-                            <a href="?route=cupons" class="btn btn-secondary">
+                            <a href="/cupons" class="btn btn-secondary">
                                 <i class="bi bi-arrow-left me-2"></i>Voltar
                             </a>
                             <button type="submit" class="btn btn-primary">
@@ -111,5 +109,3 @@
     })
 })()
 </script>
-
-<?php require_once __DIR__ . '/../layout/footer.php'; ?> 

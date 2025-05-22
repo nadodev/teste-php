@@ -3,20 +3,25 @@
 namespace Presentation\Controllers;
 
 use Infrastructure\Repositories\PedidoRepository;
+use Presentation\View;
 
 class PedidosController
 {
     private PedidoRepository $pedidoRepository;
+    private View $view;
 
     public function __construct()
     {
         $this->pedidoRepository = new PedidoRepository();
+        $this->view = new View();
     }
 
     public function index(): void
     {
         $pedidos = $this->pedidoRepository->findAll();
-        require_once __DIR__ . '/../Views/pedidos/index.php';
+        $this->view->render('pedidos/index', [
+            'pedidos' => $pedidos
+        ]);
     }
 
     public function detalhes(): void
@@ -28,7 +33,7 @@ class PedidosController
                 'type' => 'danger',
                 'text' => 'Pedido não encontrado.'
             ];
-            header('Location: ?route=pedidos');
+            header('Location: /pedidos');
             exit;
         }
 
@@ -39,10 +44,12 @@ class PedidosController
                 'type' => 'danger',
                 'text' => 'Pedido não encontrado.'
             ];
-            header('Location: ?route=pedidos');
+            header('Location: /pedidos');
             exit;
         }
 
-        require_once __DIR__ . '/../Views/pedidos/detalhes.php';
+        $this->view->render('pedidos/detalhes', [
+            'pedido' => $pedido
+        ]);
     }
 } 
