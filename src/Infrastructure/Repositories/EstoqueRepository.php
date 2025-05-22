@@ -16,6 +16,21 @@ class EstoqueRepository implements EstoqueRepositoryInterface
         $this->connection = Connection::getInstance();
     }
 
+    public function beginTransaction(): void
+    {
+        $this->connection->beginTransaction();
+    }
+
+    public function commit(): void
+    {
+        $this->connection->commit();
+    }
+
+    public function rollback(): void
+    {
+        $this->connection->rollBack();
+    }
+
     public function findByProdutoId(int $produto_id): array
     {
         $stmt = $this->connection->prepare("SELECT * FROM estoque WHERE produto_id = ?");
@@ -57,19 +72,35 @@ class EstoqueRepository implements EstoqueRepositoryInterface
     public function update(Estoque $estoque): bool
     {
         $stmt = $this->connection->prepare(
-            "UPDATE estoque SET variacao = ?, quantidade = ? WHERE id = ?"
+            "UPDATE estoque SET variacao = ?, quantidade = ? WHERE id = ? AND quantidade >= 0"
         );
-        return $stmt->execute([
+        $result = $stmt->execute([
             $estoque->getVariacao(),
             $estoque->getQuantidade(),
             $estoque->getId()
         ]);
+
+        if ($stmt->rowCount() === 0) {
+            throw new \RuntimeException("Não foi possível atualizar o estoque. Quantidade insuficiente.");
+        }
+
+        return $result;
     }
 
     public function updateQuantidade(int $id, int $quantidade): bool
     {
-        $stmt = $this->connection->prepare("UPDATE estoque SET quantidade = ? WHERE id = ?");
-        return $stmt->execute([$quantidade, $id]);
+        if ($quantidade < 0) {
+            throw new \RuntimeException("A quantidade não pode ser negativa.");
+        }
+
+        $stmt = $this->connection->prepare("UPDATE estoque SET quantidade = ? WHERE id = ? AND quantidade >= 0");
+        $result = $stmt->execute([$quantidade, $id]);
+
+        if ($stmt->rowCount() === 0) {
+            throw new \RuntimeException("Não foi possível atualizar o estoque. Quantidade insuficiente.");
+        }
+
+        return $result;
     }
 
     public function delete(int $id): bool

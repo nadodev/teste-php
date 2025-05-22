@@ -102,6 +102,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="?route=pedidos">
+                            <i class="bi bi-receipt me-1"></i>Pedidos
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="?route=cupons">
                             <i class="bi bi-percent me-1"></i>Cupons
                         </a>

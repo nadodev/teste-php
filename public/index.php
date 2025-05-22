@@ -74,6 +74,18 @@ switch ($route) {
         $controller->removerCupom();
         break;
 
+    case 'carrinho/finalizar':
+        require_once __DIR__ . '/../src/Presentation/Controllers/CarrinhoController.php';
+        $controller = new Presentation\Controllers\CarrinhoController();
+        $controller->finalizar();
+        break;
+
+    case 'carrinho/sucesso':
+        require_once __DIR__ . '/../src/Presentation/Controllers/CarrinhoController.php';
+        $controller = new Presentation\Controllers\CarrinhoController();
+        $controller->sucesso();
+        break;
+
     case 'cupons':
         require_once __DIR__ . '/../src/Presentation/Controllers/CupomController.php';
         $controller = new Presentation\Controllers\CupomController();
@@ -102,6 +114,18 @@ switch ($route) {
         require_once __DIR__ . '/../src/Presentation/Controllers/WebhookController.php';
         $controller = new Presentation\Controllers\WebhookController();
         $controller->atualizarPedido();
+        break;
+
+    case 'pedidos':
+        require_once __DIR__ . '/../src/Presentation/Controllers/PedidosController.php';
+        $controller = new Presentation\Controllers\PedidosController();
+        $controller->index();
+        break;
+
+    case 'pedidos/detalhes':
+        require_once __DIR__ . '/../src/Presentation/Controllers/PedidosController.php';
+        $controller = new Presentation\Controllers\PedidosController();
+        $controller->detalhes();
         break;
     
     default:

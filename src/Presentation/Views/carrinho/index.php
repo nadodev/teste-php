@@ -148,7 +148,7 @@
                         </div>
 
                         <div class="d-grid gap-2">
-                            <form action="?route=carrinho/finalizar" method="post">
+                            <form action="?route=carrinho/finalizar" method="post" id="formFinalizarCompra">
                                 <div class="mb-3">
                                     <label for="email" class="form-label">Email para receber os detalhes do pedido</label>
                                     <input type="email" 
@@ -158,6 +158,67 @@
                                            required 
                                            placeholder="seu@email.com">
                                 </div>
+
+                                <div class="mb-3">
+                                    <label for="cep" class="form-label">CEP</label>
+                                    <div class="input-group">
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="cep" 
+                                               maxlength="9"
+                                               placeholder="00000-000">
+                                        <button class="btn btn-outline-secondary" 
+                                                type="button" 
+                                                id="buscarCep">
+                                            Buscar
+                                        </button>
+                                    </div>
+                                    <div class="form-text" id="cepFeedback"></div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="cidade" class="form-label">Cidade</label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="cidade" 
+                                           name="cidade" 
+                                           required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="estado" class="form-label">Estado</label>
+                                    <select class="form-select" id="estado" name="estado" required>
+                                        <option value="">Selecione o estado</option>
+                                        <option value="AC">Acre</option>
+                                        <option value="AL">Alagoas</option>
+                                        <option value="AP">Amapá</option>
+                                        <option value="AM">Amazonas</option>
+                                        <option value="BA">Bahia</option>
+                                        <option value="CE">Ceará</option>
+                                        <option value="DF">Distrito Federal</option>
+                                        <option value="ES">Espírito Santo</option>
+                                        <option value="GO">Goiás</option>
+                                        <option value="MA">Maranhão</option>
+                                        <option value="MT">Mato Grosso</option>
+                                        <option value="MS">Mato Grosso do Sul</option>
+                                        <option value="MG">Minas Gerais</option>
+                                        <option value="PA">Pará</option>
+                                        <option value="PB">Paraíba</option>
+                                        <option value="PR">Paraná</option>
+                                        <option value="PE">Pernambuco</option>
+                                        <option value="PI">Piauí</option>
+                                        <option value="RJ">Rio de Janeiro</option>
+                                        <option value="RN">Rio Grande do Norte</option>
+                                        <option value="RS">Rio Grande do Sul</option>
+                                        <option value="RO">Rondônia</option>
+                                        <option value="RR">Roraima</option>
+                                        <option value="SC">Santa Catarina</option>
+                                        <option value="SP">São Paulo</option>
+                                        <option value="SE">Sergipe</option>
+                                        <option value="TO">Tocantins</option>
+                                    </select>
+                                </div>
+
                                 <button type="submit" class="btn btn-primary w-100 mb-2">
                                     <i class="bi bi-credit-card me-2"></i>Finalizar Compra
                                 </button>
@@ -172,5 +233,67 @@
         </div>
     <?php endif; ?>
 </div>
+
+<!-- Modal de Loading -->
+<div class="modal fade" id="loadingModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+                <h5 class="mb-0">Processando seu pedido...</h5>
+                <p class="text-muted mb-0">Por favor, aguarde.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('formFinalizarCompra').addEventListener('submit', function() {
+    var modal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    modal.show();
+});
+
+// Máscara para o CEP
+document.getElementById('cep').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 5) {
+        value = value.substring(0, 5) + '-' + value.substring(5);
+    }
+    e.target.value = value;
+});
+
+// Busca CEP
+document.getElementById('buscarCep').addEventListener('click', function() {
+    const cep = document.getElementById('cep').value.replace(/\D/g, '');
+    const feedback = document.getElementById('cepFeedback');
+    
+    if (cep.length !== 8) {
+        feedback.innerHTML = '<span class="text-danger">CEP inválido</span>';
+        return;
+    }
+
+    feedback.innerHTML = '<span class="text-muted">Buscando CEP...</span>';
+    
+    fetch(`https://viacep.com.br/ws/${cep}/json/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.erro) {
+                feedback.innerHTML = '<span class="text-danger">CEP não encontrado</span>';
+                return;
+            }
+
+            document.getElementById('cidade').value = data.localidade;
+            document.getElementById('estado').value = data.uf;
+            
+            feedback.innerHTML = '<span class="text-success">CEP encontrado!</span>';
+        })
+        .catch(error => {
+            console.error('Erro ao buscar CEP:', error);
+            feedback.innerHTML = '<span class="text-danger">Erro ao buscar CEP</span>';
+        });
+});
+</script>
 
 <?php require_once __DIR__ . '/../layout/footer.php'; ?> 

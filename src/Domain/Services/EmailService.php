@@ -2,55 +2,90 @@
 
 namespace Domain\Services;
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-use Infrastructure\Config\Config;
+use Exception;
 
 class EmailService
 {
-    private PHPMailer $mailer;
+    private string $apiKey;
+    private string $fromEmail;
+    private string $fromName;
+    private string $testEmail;
 
     public function __construct()
     {
-        $this->mailer = new PHPMailer(true);
-        
-        // Carregar configurações do email
-        $config = Config::getMailConfig();
-        
-        // Configuração do servidor SMTP
-        $this->mailer->isSMTP();
-        $this->mailer->Host = $config['host'];
-        $this->mailer->SMTPAuth = true;
-        $this->mailer->Username = $config['username'];
-        $this->mailer->Password = $config['password'];
-        $this->mailer->SMTPSecure = $config['encryption'];
-        $this->mailer->Port = $config['port'];
-        
-        // Configuração do remetente
-        $this->mailer->setFrom($config['from_address'], $config['from_name']);
-        
-        // Configuração do formato
-        $this->mailer->isHTML(true);
-        $this->mailer->CharSet = 'UTF-8';
+        $this->apiKey = 're_NLzSyNXc_GjhSp3zkgyqi1ks2wqzsGEuP';
+        // Usando um domínio verificado do Resend temporariamente
+        $this->fromEmail = 'onboarding@resend.dev';
+        $this->fromName = 'ERP Store';
+        $this->testEmail = 'nadojba@hotmail.com';
     }
 
     public function enviarDetalhesCompra(string $email, array $itens, float $subtotal, float $desconto, float $frete, float $total): void
     {
         try {
-            $this->mailer->addAddress($email);
-            $this->mailer->Subject = 'Detalhes do seu pedido - ERP Store';
+            // Em modo de teste, sempre envia para o email de teste
+            $destinationEmail = $this->testEmail;
+            error_log("Modo de teste: redirecionando email de {$email} para {$destinationEmail}");
             
-            // Gera o HTML do email
+            // Gera o conteúdo do email
             $html = $this->gerarHtmlPedido($itens, $subtotal, $desconto, $frete, $total);
+            $text = $this->gerarTextoPlainPedido($itens, $subtotal, $desconto, $frete, $total);
             
-            $this->mailer->Body = $html;
-            $this->mailer->AltBody = $this->gerarTextoPlainPedido($itens, $subtotal, $desconto, $frete, $total);
+            // Adiciona informação sobre o email original no corpo
+            $html = "<div style='background-color: #f8f9fa; padding: 10px; margin-bottom: 20px; border: 1px solid #dee2e6; border-radius: 4px;'>
+                        <strong>MODO DE TESTE</strong><br>
+                        Email original seria enviado para: {$email}
+                    </div>" . $html;
             
-            $this->mailer->send();
+            error_log("Iniciando envio do email via Resend API...");
+            
+            // Prepara os dados para a API do Resend
+            $data = [
+                'from' => "{$this->fromName} <{$this->fromEmail}>",
+                'to' => [$destinationEmail],
+                'subject' => '[TESTE] Detalhes do pedido - ERP Store',
+                'html' => $html,
+                'text' => $text,
+                'reply_to' => $this->testEmail
+            ];
+
+            // Configuração da requisição
+            $ch = curl_init('https://api.resend.com/emails');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Authorization: Bearer ' . $this->apiKey,
+                'Content-Type: application/json'
+            ]);
+
+            // Faz a requisição
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+
+            // Log da resposta para debug
+            error_log("Resposta do Resend: " . $response);
+            error_log("HTTP Code: " . $httpCode);
+
+            // Verifica a resposta
+            if ($error) {
+                throw new Exception("Erro CURL: " . $error);
+            }
+
+            if ($httpCode !== 200) {
+                $responseData = json_decode($response, true);
+                $errorMessage = isset($responseData['message']) ? $responseData['message'] : 'Erro desconhecido';
+                throw new Exception("Erro na API do Resend (HTTP {$httpCode}): {$errorMessage}");
+            }
+
+            error_log("Email enviado com sucesso para: {$destinationEmail} (original: {$email})");
+
         } catch (Exception $e) {
-            // Log do erro
-            error_log("Erro ao enviar email: {$e->getMessage()}");
-            throw new \RuntimeException('Não foi possível enviar o email. Por favor, tente novamente mais tarde.');
+            $erro = "Erro ao enviar email: {$e->getMessage()}";
+            error_log($erro);
+            throw new \RuntimeException($erro);
         }
     }
 

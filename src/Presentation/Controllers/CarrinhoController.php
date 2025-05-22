@@ -258,11 +258,43 @@ class CarrinhoController
             exit;
         }
 
+        // Validar email
         $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
         if (!$email) {
             $_SESSION['message'] = [
                 'type' => 'danger',
                 'text' => 'Por favor, forneça um email válido.'
+            ];
+            header('Location: ?route=carrinho');
+            exit;
+        }
+
+        // Validar dados do endereço
+        $endereco = [
+            'cidade' => htmlspecialchars(trim($_POST['cidade'] ?? ''), ENT_QUOTES, 'UTF-8'),
+            'estado' => htmlspecialchars(trim($_POST['estado'] ?? ''), ENT_QUOTES, 'UTF-8')
+        ];
+
+        // Validar campos obrigatórios do endereço
+        if (empty($endereco['cidade']) || empty($endereco['estado'])) {
+            $_SESSION['message'] = [
+                'type' => 'danger',
+                'text' => 'Por favor, preencha a cidade e o estado.'
+            ];
+            header('Location: ?route=carrinho');
+            exit;
+        }
+
+        // Validar UF
+        $estados = [
+            'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',
+            'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC',
+            'SP', 'SE', 'TO'
+        ];
+        if (!in_array($endereco['estado'], $estados)) {
+            $_SESSION['message'] = [
+                'type' => 'danger',
+                'text' => 'Por favor, selecione um estado válido.'
             ];
             header('Location: ?route=carrinho');
             exit;
@@ -280,6 +312,16 @@ class CarrinhoController
                 $estoque = $this->estoqueRepository->findByProdutoId($produto->getId())[0] ?? null;
                 $quantidade = $item['quantidade'];
                 $subtotal += $produto->getPreco() * $quantidade;
+
+                // Verificar estoque novamente antes de finalizar
+                if (!$estoque || $estoque->getQuantidade() < $quantidade) {
+                    $_SESSION['message'] = [
+                        'type' => 'danger',
+                        'text' => "Produto {$produto->getNome()} não possui estoque suficiente."
+                    ];
+                    header('Location: ?route=carrinho');
+                    exit;
+                }
 
                 $itens[] = [
                     'produto' => $produto,
@@ -307,22 +349,59 @@ class CarrinhoController
         $total = $subtotalComDesconto + $frete;
 
         try {
+            // Iniciar transação para garantir consistência
+            $this->estoqueRepository->beginTransaction();
+
+            // Criar e salvar o pedido
+            $pedidoRepository = new \Infrastructure\Repositories\PedidoRepository();
+            $pedido = new \Domain\Entities\Pedido(
+                null,
+                $email,
+                $endereco['cidade'],
+                $endereco['estado'],
+                $subtotal,
+                0.00, // Desconto removido
+                $frete,
+                $total
+            );
+            $pedido = $pedidoRepository->save($pedido, $itens, false); // Não usar transação interna
+
+            // Atualizar estoque
+            foreach ($itens as $item) {
+                $estoque = $item['estoque'];
+                $novaQuantidade = $estoque->getQuantidade() - $item['quantidade'];
+                $estoque->setQuantidade($novaQuantidade);
+                $this->estoqueRepository->update($estoque);
+            }
+
             // Enviar email com os detalhes do pedido
             $emailService = new \Domain\Services\EmailService();
             $emailService->enviarDetalhesCompra($email, $itens, $subtotal, $desconto, $frete, $total);
 
+            // Confirmar transação
+            $this->estoqueRepository->commit();
+
             // Limpar o carrinho
             $this->carrinhoService->finalizarCompra();
 
-            $_SESSION['message'] = [
-                'type' => 'success',
-                'text' => 'Compra finalizada com sucesso! Os detalhes foram enviados para seu email.'
+            // Armazenar dados do pedido na sessão para a página de sucesso
+            $_SESSION['pedido_finalizado'] = [
+                'pedido_id' => $pedido->getId(),
+                'email' => $email,
+                'endereco' => $endereco,
+                'subtotal' => $subtotal,
+                'desconto' => $desconto,
+                'frete' => $frete,
+                'total' => $total
             ];
-            
-            header('Location: ?route=produtos');
+
+            header('Location: ?route=carrinho/sucesso');
             exit;
 
         } catch (\Exception $e) {
+            // Em caso de erro, reverter alterações no estoque
+            $this->estoqueRepository->rollback();
+            
             $_SESSION['message'] = [
                 'type' => 'danger',
                 'text' => 'Erro ao processar seu pedido: ' . $e->getMessage()
@@ -330,6 +409,24 @@ class CarrinhoController
             header('Location: ?route=carrinho');
             exit;
         }
+    }
+
+    public function sucesso(): void
+    {
+        // Verificar se existe pedido finalizado na sessão
+        if (!isset($_SESSION['pedido_finalizado'])) {
+            header('Location: ?route=carrinho');
+            exit;
+        }
+
+        // Extrair dados do pedido
+        extract($_SESSION['pedido_finalizado']);
+
+        // Limpar dados da sessão
+        unset($_SESSION['pedido_finalizado']);
+
+        // Renderizar página de sucesso
+        require_once __DIR__ . '/../Views/carrinho/sucesso.php';
     }
 
     private function getProdutosFromCarrinho(): array
