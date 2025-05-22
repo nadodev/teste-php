@@ -4,29 +4,17 @@ namespace Domain\Entities;
 
 class Cupom
 {
-    private ?int $id;
     private string $codigo;
     private float $valor_desconto;
-    private \DateTime $validade;
     private float $valor_minimo;
+    private ?string $validade;
 
-    public function __construct(
-        ?int $id,
-        string $codigo,
-        float $valor_desconto,
-        \DateTime $validade,
-        float $valor_minimo
-    ) {
-        $this->id = $id;
+    public function __construct(string $codigo, float $valor_desconto, float $valor_minimo, ?string $validade = null)
+    {
         $this->codigo = $codigo;
         $this->valor_desconto = $valor_desconto;
-        $this->validade = $validade;
         $this->valor_minimo = $valor_minimo;
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
+        $this->validade = $validade;
     }
 
     public function getCodigo(): string
@@ -39,11 +27,6 @@ class Cupom
         return $this->valor_desconto;
     }
 
-    public function getValidade(): \DateTime
-    {
-        return $this->validade;
-    }
-
     public function getValorMinimo(): float
     {
         return $this->valor_minimo;
@@ -51,6 +34,9 @@ class Cupom
 
     public function isValido(): bool
     {
-        return $this->validade >= new \DateTime();
+        if ($this->validade === null) {
+            return true;
+        }
+        return strtotime($this->validade) >= strtotime('today');
     }
 } 

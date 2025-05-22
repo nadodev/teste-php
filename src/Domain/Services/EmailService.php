@@ -8,23 +8,36 @@ use PHPMailer\PHPMailer\Exception;
 class EmailService
 {
     private PHPMailer $mailer;
+    private bool $isConfigured = false;
 
     public function __construct()
     {
         $this->mailer = new PHPMailer(true);
         
-        // Server settings
-        $this->mailer->isSMTP();
-        $this->mailer->Host = $_ENV['SMTP_HOST'];
-        $this->mailer->SMTPAuth = true;
-        $this->mailer->Username = $_ENV['SMTP_USER'];
-        $this->mailer->Password = $_ENV['SMTP_PASS'];
-        $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $this->mailer->Port = $_ENV['SMTP_PORT'];
-        
-        // Default settings
-        $this->mailer->setFrom($_ENV['SMTP_FROM'], $_ENV['SMTP_FROM_NAME']);
-        $this->mailer->isHTML(true);
+        // Check if SMTP configuration exists
+        if (
+            !empty($_ENV['SMTP_HOST']) &&
+            !empty($_ENV['SMTP_USER']) &&
+            !empty($_ENV['SMTP_PASS']) &&
+            !empty($_ENV['SMTP_PORT']) &&
+            !empty($_ENV['SMTP_FROM']) &&
+            !empty($_ENV['SMTP_FROM_NAME'])
+        ) {
+            // Server settings
+            $this->mailer->isSMTP();
+            $this->mailer->Host = "smtp.hostinger.com";
+            $this->mailer->SMTPAuth = true;
+            $this->mailer->Username = "contato@leonardogeja.com.br";
+            $this->mailer->Password = "LeonardoGeja2536!!";
+            $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $this->mailer->Port = 465;
+            
+            // Default settings
+            $this->mailer->setFrom("contato@leonardogeja.com.br", "Leonardo Geja");
+            $this->mailer->isHTML(true);
+
+            $this->isConfigured = true;
+        }
     }
 
     public function enviarConfirmacaoPedido(
@@ -36,6 +49,12 @@ class EmailService
         float $total,
         ?array $endereco = null
     ): bool {
+        if (!$this->isConfigured) {
+            // Log the error or handle it appropriately
+            error_log('Email service not configured. Please check SMTP settings.');
+            return false;
+        }
+
         try {
             $this->mailer->addAddress($email);
             $this->mailer->Subject = 'Confirmação de Pedido';
@@ -83,6 +102,7 @@ class EmailService
             
             return true;
         } catch (Exception $e) {
+            error_log('Email error: ' . $e->getMessage());
             return false;
         }
     }

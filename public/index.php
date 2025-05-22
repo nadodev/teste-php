@@ -1,13 +1,14 @@
 <?php
 
-session_start();
+// Start session
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-// Initialize shopping cart if not exists
-if (!isset($_SESSION['carrinho'])) {
-    $_SESSION['carrinho'] = new Domain\Services\CarrinhoService();
-}
+// Load configuration
+Infrastructure\Config\Config::load();
 
 // Basic routing
 $route = $_GET['route'] ?? 'home';
@@ -23,6 +24,18 @@ switch ($route) {
         require_once __DIR__ . '/../src/Presentation/Controllers/ProdutoController.php';
         $controller = new Presentation\Controllers\ProdutoController();
         $controller->create();
+        break;
+    
+    case 'produto/editar':
+        require_once __DIR__ . '/../src/Presentation/Controllers/ProdutoController.php';
+        $controller = new Presentation\Controllers\ProdutoController();
+        $controller->edit();
+        break;
+
+    case 'produto/excluir':
+        require_once __DIR__ . '/../src/Presentation/Controllers/ProdutoController.php';
+        $controller = new Presentation\Controllers\ProdutoController();
+        $controller->delete();
         break;
     
     case 'carrinho':

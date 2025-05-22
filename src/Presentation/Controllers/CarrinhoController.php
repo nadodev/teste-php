@@ -20,7 +20,11 @@ class CarrinhoController
 
     public function __construct()
     {
-        $this->carrinho = $_SESSION['carrinho'];
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $this->carrinho = CarrinhoService::obterCarrinho();
         $this->produtoRepository = new ProdutoRepository();
         $this->cupomRepository = new CupomRepository();
         $this->viaCEPService = new ViaCEPService();
@@ -31,6 +35,7 @@ class CarrinhoController
     public function index(): void
     {
         $endereco = $_SESSION['endereco_entrega'] ?? null;
+        $carrinho = $this->carrinho;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $action = $_POST['action'] ?? '';
