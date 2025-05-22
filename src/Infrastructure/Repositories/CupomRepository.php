@@ -64,7 +64,7 @@ class CupomRepository implements CupomRepositoryInterface
             $cupom->getValidade()
         ]);
 
-        return $cupom; // Como o código é a chave primária, retornamos o mesmo objeto
+        return $cupom; 
     }
 
     public function update(Cupom $cupom): bool

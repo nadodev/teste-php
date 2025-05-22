@@ -152,7 +152,6 @@ class EstoqueRepository implements EstoqueRepositoryInterface
                 throw new \RuntimeException("ID do estoque não pode ser nulo.");
             }
 
-            // Verificar se o estoque existe
             $checkStmt = $this->connection->prepare("SELECT * FROM estoque WHERE id = ?");
             $checkStmt->execute([$estoque->getId()]);
             $exists = $checkStmt->fetch(PDO::FETCH_ASSOC);
@@ -170,7 +169,6 @@ class EstoqueRepository implements EstoqueRepositoryInterface
                 }
             }
 
-            // Atualizar o estoque existente
             $sql = "UPDATE estoque SET variacao = :variacao, quantidade = :quantidade WHERE id = :id";
             $stmt = $this->connection->prepare($sql);
             
@@ -205,7 +203,6 @@ class EstoqueRepository implements EstoqueRepositoryInterface
                 }
             }
 
-            // Verificar se a atualização foi bem sucedida
             $verifyStmt = $this->connection->prepare("SELECT * FROM estoque WHERE id = ?");
             $verifyStmt->execute([$estoque->getId()]);
             $updated = $verifyStmt->fetch(PDO::FETCH_ASSOC);

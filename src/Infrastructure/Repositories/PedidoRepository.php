@@ -25,7 +25,6 @@ class PedidoRepository
                 $this->connection->beginTransaction();
             }
 
-            // Insere o pedido
             $stmt = $this->connection->prepare(
                 "INSERT INTO pedidos (email, subtotal, frete, total, status) 
                  VALUES (?, ?, ?, ?, ?)"
@@ -41,7 +40,6 @@ class PedidoRepository
 
             $pedidoId = $this->connection->lastInsertId();
 
-            // Insere os itens do pedido
             $stmtItem = $this->connection->prepare(
                 "INSERT INTO pedido_itens (pedido_id, produto_id, quantidade, preco_unitario, subtotal) 
                  VALUES (?, ?, ?, ?, ?)"
@@ -85,8 +83,7 @@ class PedidoRepository
             return null;
         }
 
-        $pedido = new Pedido(
-            (int)$result['id'],
+        $pedido = new Pedido((int)$result['id'],
             $result['email'],
             'N/A',
             'NA',
@@ -98,7 +95,6 @@ class PedidoRepository
             $result['data_criacao']
         );
 
-        // Carrega os itens do pedido
         $pedido->setItens($this->findItensByPedidoId($id));
 
         return $pedido;
@@ -153,11 +149,8 @@ class PedidoRepository
         try {
             $this->connection->beginTransaction();
 
-            // Primeiro remove os itens do pedido
             $stmtItems = $this->connection->prepare("DELETE FROM pedido_itens WHERE pedido_id = ?");
             $stmtItems->execute([$id]);
-
-            // Depois remove o pedido
             $stmtPedido = $this->connection->prepare("DELETE FROM pedidos WHERE id = ?");
             $success = $stmtPedido->execute([$id]);
 
