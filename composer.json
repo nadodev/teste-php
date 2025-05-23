@@ -17,6 +17,7 @@
     "require": {
         "php": ">=7.4",
         "phpmailer/phpmailer": "^6.10",
-        "resend/resend-php": "^0.18.0"
+        "resend/resend-php": "^0.18.0",
+        "guzzlehttp/guzzle": "^7.9"
     }
 }

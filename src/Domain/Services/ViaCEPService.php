@@ -2,31 +2,28 @@
 
 namespace Domain\Services;
 
+use GuzzleHttp\Client;
+
+
 class ViaCEPService
 {
     public function consultarCEP(string $cep): ?array
-    {
-        $cep = preg_replace('/[^0-9]/', '', $cep);
-        
-        if (strlen($cep) !== 8) {
-            return null;
-        }
+{
+    $cep = preg_replace('/\D/', '', $cep);
 
-        $url = "https://viacep.com.br/ws/{$cep}/json/";
-        
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        
-        $response = curl_exec($ch);
-        curl_close($ch);
+    if (strlen($cep) !== 8) {
+        return null;
+    }
 
-        if (!$response) {
-            return null;
-        }
+    $client = new Client([
+        'base_uri' => 'https://viacep.com.br/ws/',
+        'timeout'  => 5.0,
+    ]);
 
-        $data = json_decode($response, true);
+    try {
+        
+        $response = $client->get("{$cep}/json/");
+        $data = json_decode($response->getBody(), true);
 
         if (isset($data['erro']) || empty($data)) {
             return null;
@@ -39,5 +36,8 @@ class ViaCEPService
             'cidade' => $data['localidade'],
             'estado' => $data['uf']
         ];
+    } catch (\Exception $e) {
+        return null;
     }
+}
 } 
