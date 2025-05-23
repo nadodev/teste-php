@@ -45,51 +45,28 @@ class EstoqueRepository implements EstoqueRepositoryInterface
         $checkProdutoStmt = $this->connection->prepare("SELECT id FROM produtos WHERE id = ?");
         $checkProdutoStmt->execute([$produto_id]);
         $produtoExists = $checkProdutoStmt->fetch(PDO::FETCH_ASSOC);
-        $this->debug("Produto existe?", $produtoExists);
         
         $stmt = $this->connection->prepare("SELECT * FROM estoque WHERE produto_id = ?");
         $stmt->execute([$produto_id]);
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        $this->debug("Resultados encontrados", [
-            'count' => count($results),
-            'data' => $results
-        ]);
-        
         $estoques = [];
         foreach ($results as $result) {
-            $this->debug("Processando estoque", $result);
-            
             $estoque = new Estoque(
                 (int) $result['id'],
                 (int) $result['produto_id'],
                 $result['variacao'],
                 (int) $result['quantidade']
             );
-            
-            $this->debug("Estoque criado", [
-                'id' => $estoque->getId(),
-                'produto_id' => $estoque->getProdutoId(),
-                'variacao' => $estoque->getVariacao(),
-                'quantidade' => $estoque->getQuantidade()
-            ]);
                      
             $estoques[] = $estoque;
         }
 
-        $this->debug("=== FIM DA BUSCA DE ESTOQUE POR PRODUTO ===");
         return $estoques;
     }
 
     public function save(Estoque $estoque): Estoque
     {
-        $this->debug("=== INÍCIO DO SALVAMENTO DO ESTOQUE ===");
-        $this->debug("Dados do estoque para salvar", [
-            'produto_id' => $estoque->getProdutoId(),
-            'variacao' => $estoque->getVariacao(),
-            'quantidade' => $estoque->getQuantidade()
-        ]);
-
         try {
             $stmt = $this->connection->prepare(
                 "INSERT INTO estoque (produto_id, variacao, quantidade) VALUES (?, ?, ?)"
@@ -101,18 +78,14 @@ class EstoqueRepository implements EstoqueRepositoryInterface
                 $estoque->getQuantidade()
             ];
             
-            $this->debug("Parâmetros da query de inserção", $params);
-            
             $result = $stmt->execute($params);
 
             if (!$result) {
                 $error = $stmt->errorInfo();
-                $this->debug("Erro ao executar a query de inserção", $error);
                 throw new \RuntimeException("Erro ao salvar o estoque: " . implode(", ", $error));
             }
 
             $id = $this->connection->lastInsertId();
-            $this->debug("Novo ID do estoque", $id);
 
             $estoqueSalvo = new Estoque(
                 (int) $id,
@@ -121,7 +94,6 @@ class EstoqueRepository implements EstoqueRepositoryInterface
                 $estoque->getQuantidade()
             );
 
-            $this->debug("=== FIM DO SALVAMENTO DO ESTOQUE ===");
             return $estoqueSalvo;
 
         } catch (\Exception $e) {
@@ -136,13 +108,6 @@ class EstoqueRepository implements EstoqueRepositoryInterface
     public function update(Estoque $estoque): bool
     {
         try {
-            $this->debug("=== INÍCIO DA ATUALIZAÇÃO DO ESTOQUE ===");
-            $this->debug("Dados do estoque para atualização", [
-                'id' => $estoque->getId(),
-                'produto_id' => $estoque->getProdutoId(),
-                'variacao' => $estoque->getVariacao(),
-                'quantidade' => $estoque->getQuantidade()
-            ]);
 
             if ($estoque->getQuantidade() < 0) {
                 throw new \RuntimeException("A quantidade não pode ser negativa.");
@@ -156,10 +121,8 @@ class EstoqueRepository implements EstoqueRepositoryInterface
             $checkStmt->execute([$estoque->getId()]);
             $exists = $checkStmt->fetch(PDO::FETCH_ASSOC);
             
-            $this->debug("Verificação de existência do estoque", $exists);
 
             if (!$exists) {
-                $this->debug("Estoque não encontrado, criando novo registro");
                 try {
                     $this->save($estoque);
                     return true;
@@ -178,22 +141,16 @@ class EstoqueRepository implements EstoqueRepositoryInterface
                 ':id' => $estoque->getId()
             ];
             
-            $this->debug("SQL da atualização", $sql);
-            $this->debug("Parâmetros da query de atualização", $params);
-            
             $result = $stmt->execute($params);
 
             if (!$result) {
                 $error = $stmt->errorInfo();
-                $this->debug("Erro ao executar a query", $error);
                 throw new \RuntimeException("Erro ao atualizar o estoque: " . implode(", ", $error));
             }
 
             $rowsAffected = $stmt->rowCount();
-            $this->debug("Linhas afetadas pela atualização", $rowsAffected);
 
             if ($rowsAffected === 0) {
-                $this->debug("Nenhum registro atualizado, tentando criar novo");
                 try {
                     $this->save($estoque);
                     return true;
@@ -207,9 +164,6 @@ class EstoqueRepository implements EstoqueRepositoryInterface
             $verifyStmt->execute([$estoque->getId()]);
             $updated = $verifyStmt->fetch(PDO::FETCH_ASSOC);
             
-            $this->debug("Verificação após atualização", $updated);
-
-            $this->debug("=== FIM DA ATUALIZAÇÃO DO ESTOQUE ===");
             return true;
 
         } catch (\Exception $e) {
