@@ -97,5 +97,3 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 ## Contato
 
 Leonardo Geja - [Linkdin](https://www.linkedin.com/in/leonardogeja/)
-
-Link do Projeto: [https://github.com/nadodev/erp_projeto](https://github.com/nadodev/erp_projeto) 
